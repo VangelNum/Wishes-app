@@ -1,0 +1,4 @@
+package com.vangelnum.wisher.presentation
+
+class RegistrationEvent {
+}
