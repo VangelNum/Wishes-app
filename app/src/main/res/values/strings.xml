@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Wisher-app</string>
+    <string name="register">Register</string>
+    <string name="register_title">Register</string>
+    <string name="register_subtitle">Enter your personal information</string>
+    <string name="username">Username</string>
+    <string name="enter_your_name">Enter your name</string>
+    <string name="email">Email</string>
+    <string name="enter_your_email">Enter your email</string>
+    <string name="password">Password</string>
+    <string name="enter_password">Enter password</string>
+    <string name="back">Back</string>
 </resources>

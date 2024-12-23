@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wisher</string>
+    <string name="register">Зарегистрироваться</string>
+    <string name="register_title">Регистрация</string>
+    <string name="register_subtitle">Введите свои данные</string>
+    <string name="username">Имя пользователя</string>
+    <string name="enter_your_name">Введите ваше имя</string>
+    <string name="email">Email</string>
+    <string name="enter_your_email">Введите ваш email</string>
+    <string name="password">Пароль</string>
+    <string name="enter_password">Введите пароль</string>
+    <string name="back">Вернуться</string>
+</resources>
