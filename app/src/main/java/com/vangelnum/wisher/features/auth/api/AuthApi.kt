@@ -4,6 +4,7 @@ import com.vangelnum.wisher.features.auth.data.model.AuthResponse
 import com.vangelnum.wisher.features.auth.data.model.RegistrationRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface AuthApi {
@@ -11,5 +12,7 @@ interface AuthApi {
     suspend fun register(@Body request: RegistrationRequest): AuthResponse
 
     @GET("/api/v1/user/me")
-    suspend fun getUserInfo(): AuthResponse
+    suspend fun getUserInfo(
+        @Header("Authorization") authorization: String
+    ): AuthResponse
 }

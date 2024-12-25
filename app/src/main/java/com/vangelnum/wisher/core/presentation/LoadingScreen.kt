@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,6 +53,76 @@ fun LoadingScreen(modifier: Modifier = Modifier, text: String? = null) {
             Box(
                 modifier = modifier
                     .size(40.dp)
+                    .onSizeChanged {
+                        width = it.width
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    strokeWidth = 1.dp,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            rotationZ = rotation
+                        }
+                )
+                CircularProgressIndicator(
+                    strokeWidth = 1.dp,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            with(LocalDensity.current) {
+                                (width * PADDING_PERCENTAGE_INNER_CIRCLE).toDp()
+                            }
+                        )
+                        .graphicsLayer {
+                            rotationZ = rotation + POSITION_START_OFFSET_INNER_CIRCLE
+                        }
+                )
+                CircularProgressIndicator(
+                    strokeWidth = 1.dp,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            with(LocalDensity.current) {
+                                (width * PADDING_PERCENTAGE_OUTER_CIRCLE).toDp()
+                            }
+                        )
+                        .graphicsLayer {
+                            rotationZ = rotation + POSITION_START_OFFSET_OUTER_CIRCLE
+                        }
+                )
+            }
+            if (text != null) {
+                Text(text)
+            }
+        }
+    }
+}
+
+
+@Composable
+fun SmallLoadingIndicator(modifier: Modifier = Modifier, text: String? = null) {
+    val infiniteTransition = rememberInfiniteTransition(label = "infinity_loading_animation")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000)
+        ), label = "rotation_loading_animation"
+    )
+
+    var width by remember {
+        mutableIntStateOf(0)
+    }
+
+    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
+                modifier = modifier
+                    .size(20.dp)
                     .onSizeChanged {
                         width = it.width
                     },

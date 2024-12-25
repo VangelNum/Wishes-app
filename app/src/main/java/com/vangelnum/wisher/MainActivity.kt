@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             WisherappTheme {
                 Scaffold(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) { innerPadding ->
                     AppNavHost(modifier = Modifier.padding(innerPadding))
                 }

@@ -5,5 +5,5 @@ import com.vangelnum.wisher.features.auth.data.model.RegistrationRequest
 
 interface UserRepository {
     suspend fun register(registrationRequest: RegistrationRequest): Result<AuthResponse>
-    suspend fun getUserInfo(email: String, password: String): Result<AuthResponse>
+    suspend fun getUserInfo(authorizationHeader: String): Result<AuthResponse>
 }

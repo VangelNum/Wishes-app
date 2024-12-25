@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.vangelnum.wisher"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -62,6 +62,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation (libs.retrofit)
+    implementation(libs.logging.interceptor)
     implementation (libs.converter.gson)
 
     implementation(libs.androidx.room.runtime)
@@ -74,4 +75,6 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.androidx.datastore.preferences)
 }

@@ -44,12 +44,12 @@ val AppTypography = Typography(
     headlineMedium = TextStyle(
         fontFamily = InterTight,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 28.sp
+        fontSize = 24.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = InterTight,
         fontWeight = FontWeight.Medium,
-        fontSize = 24.sp
+        fontSize = 22.sp
     ),
     titleLarge = TextStyle(
         fontFamily = InterTight,

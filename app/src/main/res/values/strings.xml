@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Wisher-app</string>
+    <string name="app_name">Wishes</string>
     <string name="register">Register</string>
     <string name="register_title">Register</string>
     <string name="register_subtitle">Enter your personal information</string>
@@ -10,4 +10,14 @@
     <string name="password">Password</string>
     <string name="enter_password">Enter password</string>
     <string name="back">Back</string>
+    <string name="login">Login</string>
+    <string name="login_to_countinue">Login to continue using the app</string>
+    <string name="already_have_account">Already have account?</string>
+    <string name="dont_have_an_account">Don\'t have an account</string>
+    <string name="home_greeting_vam">you</string>
+    <string name="home_greeting_prekrasnogo">a wonderful</string>
+    <string name="home_greeting">Wishing</string>
+    <string name="exit">Exit</string>
+    <string name="send_wish">Send wish</string>
+    <string name="get_wishes">Open wish</string>
 </resources>

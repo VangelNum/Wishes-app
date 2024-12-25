@@ -1,8 +1,8 @@
 package com.vangelnum.wisher.features.auth.presentation
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,9 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,30 +54,42 @@ fun RegistrationScreen(
     registrationState: UiState<AuthResponse>,
     onBackToEmptyState: () -> Unit,
     onNavigateToMainScreen: () -> Unit,
-    onNavigateToLoginPage:() -> Unit,
+    onNavigateToLoginPage: () -> Unit,
     onRegisterUser: (name: String, email: String, password: String) -> Unit
 ) {
     val name = rememberSaveable { mutableStateOf("") }
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val passwordVisible = remember { mutableStateOf(false) }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(R.drawable.background5),
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(15.dp),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            alpha = 0.7f
+        )
+        when (registrationState) {
+            is UiState.Error -> ErrorScreen(
+                errorMessage = registrationState.message,
+                buttonMessage = stringResource(R.string.back),
+                onButtonClick = onBackToEmptyState
+            )
 
-    when (registrationState) {
-        is UiState.Error -> ErrorScreen(
-            errorMessage = registrationState.message,
-            buttonMessage = stringResource(R.string.back),
-            onButtonClick = onBackToEmptyState
-        )
-        UiState.Idle -> RegistrationContent(
-            name = name,
-            email = email,
-            password = password,
-            passwordVisible = passwordVisible,
-            registerUser = onRegisterUser,
-            onNavigateToLoginPage = onNavigateToLoginPage
-        )
-        UiState.Loading -> LoadingScreen()
-        is UiState.Success -> onNavigateToMainScreen()
+            UiState.Idle -> RegistrationContent(
+                name = name,
+                email = email,
+                password = password,
+                passwordVisible = passwordVisible,
+                registerUser = onRegisterUser,
+                onNavigateToLoginPage = onNavigateToLoginPage
+            )
+
+            UiState.Loading -> LoadingScreen()
+            is UiState.Success -> onNavigateToMainScreen()
+        }
     }
 }
 
@@ -86,7 +100,7 @@ fun RegistrationContent(
     email: MutableState<String>,
     password: MutableState<String>,
     passwordVisible: MutableState<Boolean>,
-    onNavigateToLoginPage:()-> Unit,
+    onNavigateToLoginPage: () -> Unit,
     registerUser: (name: String, email: String, password: String) -> Unit
 ) {
     val focusRequesterName = remember { FocusRequester() }
@@ -96,8 +110,7 @@ fun RegistrationContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+            .padding(16.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -106,8 +119,8 @@ fun RegistrationContent(
             Card(
                 shape = CircleShape,
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.Gray,
-                    contentColor = Color.White
+                    containerColor = Color(0xFFD4F6FF),
+                    contentColor = Color(0xFF9694FF)
                 )
             ) {
                 Icon(
@@ -116,7 +129,6 @@ fun RegistrationContent(
                     modifier = Modifier
                         .size(100.dp)
                         .padding(16.dp),
-                    tint = Color.White
                 )
             }
         }
@@ -131,7 +143,7 @@ fun RegistrationContent(
         Text(
             stringResource(R.string.register_subtitle),
             color = Color.Gray,
-            style = MaterialTheme.typography.bodyMedium // Добавил стиль для консистентности
+            style = MaterialTheme.typography.bodyMedium
         )
         VerticalSpacer(16.dp)
 
@@ -143,7 +155,7 @@ fun RegistrationContent(
             keyboardActions = KeyboardActions(onNext = { focusRequesterEmail.requestFocus() }),
             focusRequester = focusRequesterName
         )
-        VerticalSpacer(8.dp)
+        VerticalSpacer(16.dp)
 
         InputTextField(
             labelResId = R.string.email,
@@ -153,7 +165,7 @@ fun RegistrationContent(
             keyboardActions = KeyboardActions(onNext = { focusRequesterPassword.requestFocus() }),
             focusRequester = focusRequesterEmail
         )
-        VerticalSpacer(8.dp)
+        VerticalSpacer(16.dp)
 
         InputTextField(
             labelResId = R.string.password,
@@ -166,17 +178,14 @@ fun RegistrationContent(
             }),
             focusRequester = focusRequesterPassword,
             trailingIcon = {
-                val image = if (passwordVisible.value) R.drawable.visibility else R.drawable.visibility_off
+                val image =
+                    if (passwordVisible.value) R.drawable.visibility else R.drawable.visibility_off
                 IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
                     Icon(painter = painterResource(image), contentDescription = null)
                 }
             }
         )
-        VerticalSpacer(8.dp)
-        Text("Already have account?", modifier = Modifier.fillMaxWidth().align(Alignment.End).clickable {
-            onNavigateToLoginPage()
-        })
-        VerticalSpacer(8.dp)
+        VerticalSpacer(16.dp)
         Button(
             onClick = { registerUser(name.value, email.value, password.value) },
             modifier = Modifier
@@ -186,6 +195,14 @@ fun RegistrationContent(
             Text(
                 stringResource(R.string.register),
                 style = MaterialTheme.typography.titleLarge
+            )
+        }
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+            Text(stringResource(R.string.already_have_account), modifier = Modifier
+                .padding(bottom = 16.dp)
+                .clickable {
+                    onNavigateToLoginPage()
+                }
             )
         }
     }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Wisher</string>
+    <string name="app_name">Wishes</string>
     <string name="register">Зарегистрироваться</string>
     <string name="register_title">Регистрация</string>
     <string name="register_subtitle">Введите свои данные</string>
@@ -11,4 +11,14 @@
     <string name="password">Пароль</string>
     <string name="enter_password">Введите пароль</string>
     <string name="back">Вернуться</string>
+    <string name="login">Авторизация</string>
+    <string name="login_to_countinue">Войдите чтобы пользоваться приложением</string>
+    <string name="already_have_account">Уже есть аккаунт? Войти</string>
+    <string name="dont_have_an_account">Ещё нет аккаунта? Регистрация</string>
+    <string name="home_greeting_vam">вам</string>
+    <string name="home_greeting_prekrasnogo">прекрасного</string>
+    <string name="home_greeting">Желаем</string>
+    <string name="exit">Выйти</string>
+    <string name="send_wish">Отправить пожелание</string>
+    <string name="get_wishes">Получить пожелания</string>
 </resources>
