@@ -1,0 +1,9 @@
+package com.vangelnum.wisher.features.auth.domain.repository
+
+import com.vangelnum.wisher.features.auth.data.model.AuthResponse
+import com.vangelnum.wisher.features.auth.data.model.RegistrationRequest
+
+interface UserRepository {
+    suspend fun register(registrationRequest: RegistrationRequest): Result<AuthResponse>
+    suspend fun getUserInfo(authorizationHeader: String): Result<AuthResponse>
+}
