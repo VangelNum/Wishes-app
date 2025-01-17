@@ -64,6 +64,7 @@ dependencies {
     implementation (libs.retrofit)
     implementation(libs.logging.interceptor)
     implementation (libs.converter.gson)
+    implementation (libs.converter.scalars)
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
@@ -77,4 +78,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.datastore.preferences)
+
+    implementation(libs.coil.compose)
+    implementation("org.jsoup:jsoup:1.14.3")
 }

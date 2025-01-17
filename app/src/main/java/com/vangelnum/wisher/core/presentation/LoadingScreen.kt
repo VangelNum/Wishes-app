@@ -48,7 +48,8 @@ fun LoadingScreen(modifier: Modifier = Modifier, text: String? = null) {
 
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = modifier

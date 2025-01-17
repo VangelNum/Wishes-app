@@ -21,4 +21,15 @@
     <string name="exit">Выйти</string>
     <string name="send_wish">Отправить пожелание</string>
     <string name="get_wishes">Получить пожелания</string>
+    <string name="loading_current_date">Загружаем даты в месяце</string>
+    <string name="copied">Код скопирован</string>
+    <string name="continue_string">Продолжить</string>
+    <string name="name_invalid">Имя должно содержать от 2 до 24 символов</string>
+    <string name="email_invalid">Неверный формат электронной почты</string>
+    <string name="password_invalid">Пароль должен содержать от 8 до 24 символов</string>
+    <string name="another_date">Другая дата</string>
+    <string name="loading_holidays">Загружаем праздники</string>
+    <string name="try_again">Попробовать еще раз</string>
+    <string name="holidays">Праздники</string>
+    <string name="another_holiday">Другая причина</string>
 </resources>

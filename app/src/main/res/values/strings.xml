@@ -20,4 +20,15 @@
     <string name="exit">Exit</string>
     <string name="send_wish">Send wish</string>
     <string name="get_wishes">Open wish</string>
+    <string name="loading_current_date">Loading dates in a month</string>
+    <string name="copied">Code copied</string>
+    <string name="continue_string">Continue</string>
+    <string name="name_invalid">Name  must be 2 to 24 characters long</string>
+    <string name="email_invalid">Invalid email format</string>
+    <string name="password_invalid">Password must be 8 to 24 characters long</string>
+    <string name="another_date">Another Date</string>
+    <string name="loading_holidays">Loading Holidays</string>
+    <string name="try_again">Try again</string>
+    <string name="holidays">Holidays</string>
+    <string name="another_holiday">Another occasion</string>
 </resources>

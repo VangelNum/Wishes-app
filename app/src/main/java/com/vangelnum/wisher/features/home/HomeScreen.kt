@@ -1,12 +1,32 @@
 package com.vangelnum.wisher.features.home
 
+import android.app.DatePickerDialog
+import android.content.Intent
+import android.widget.DatePicker
+import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.updateTransition
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -14,132 +34,328 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabIndicatorScope
+import androidx.compose.material3.TabPosition
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.SmallLoadingIndicator
+import com.vangelnum.wisher.features.home.getwish.data.model.GetWishResponse
+import com.vangelnum.wisher.features.home.getwish.presentation.GetWishScreen
+import com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.data.model.WishKey
+import com.vangelnum.wisher.features.home.sendwish.stage1.worldtime.data.model.DateInfo
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.Month
 import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.Calendar
+import java.util.Locale
 import kotlin.random.Random
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     homeKeyUiState: UiState<WishKey>,
-    onGetWishKey: () -> Unit
+    currentDateUiState: UiState<DateInfo>,
+    onGetWishKey: () -> Unit,
+    onGetTime: () -> Unit,
+    onNavigateHolidaysScreen: (String, String, String) -> Unit,
+    onGetWishes: (key: String) -> Unit,
+    wishesState: UiState<List<GetWishResponse>>
 ) {
     LaunchedEffect(true) {
         onGetWishKey()
+        onGetTime()
     }
 
-    val currentDate = remember { LocalDate.now() }
-    val daysRemaining = remember(currentDate) {
-        val lastDayOfMonth = YearMonth.from(currentDate).atEndOfMonth()
-        val daysRemaining = lastDayOfMonth.dayOfYear - currentDate.dayOfYear + 1
-        daysRemaining
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    var showCalendarDialog by remember { mutableStateOf(false) }
+    var selectedHolidayDate by remember { mutableStateOf<LocalDate?>(null) }
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(selectedHolidayDate) {
+        if (selectedHolidayDate != null && homeKeyUiState is UiState.Success && currentDateUiState is UiState.Success) {
+            onNavigateHolidaysScreen(
+                selectedHolidayDate.toString(),
+                homeKeyUiState.data.key,
+                currentDateUiState.data.toString()
+            )
+        }
     }
 
-    val daysList = remember(daysRemaining) {
-        (1..daysRemaining).toList()
-    }
+    currentDateUiState.let { state ->
+        if (state is UiState.Success) {
+            val dateInfo = state.data
 
-    LazyVerticalGrid(
-        GridCells.Fixed(2),
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
-    ) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Box {
-                Image(
-                    painter = painterResource(R.drawable.logo),
-                    contentDescription = null,
-                    modifier = Modifier.height(40.dp)
+            if (showCalendarDialog) {
+                val calendar = Calendar.getInstance()
+                calendar.set(dateInfo.year, dateInfo.month - 1, dateInfo.day)
+                val datePickerDialog = DatePickerDialog(
+                    context,
+                    { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
+                        selectedHolidayDate = LocalDate.of(year, month + 1, dayOfMonth)
+                        showCalendarDialog = false
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
                 )
+                datePickerDialog.datePicker.minDate = calendar.timeInMillis
+                datePickerDialog.setOnDismissListener { showCalendarDialog = false }
+                datePickerDialog.show()
             }
         }
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            FancyIndicatorContainerTabs()
-        }
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = CircleShape
+    }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        FancyIndicatorContainerTabs(onTabSelected = { index -> selectedTabIndex = index })
+        if (selectedTabIndex == 0) {
+            LazyVerticalGrid(
+                GridCells.Fixed(2),
+                contentPadding = PaddingValues(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.weight(1f)
             ) {
-                SelectionContainer(
-                    modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
-                ) {
-                    when (homeKeyUiState) {
-                        is UiState.Error -> {
-                            Text(
-                                homeKeyUiState.message,
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp)
-                            )
-                        }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        ),
+                        shape = CircleShape
+                    ) {
+                        SelectionContainer(
+                            modifier = Modifier.defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
+                        ) {
+                            when (homeKeyUiState) {
+                                is UiState.Error -> {
+                                    Text(
+                                        homeKeyUiState.message,
+                                        modifier = Modifier.padding(start = 16.dp, end = 16.dp)
+                                    )
+                                }
 
-                        UiState.Idle -> {}
-                        UiState.Loading -> {
-                            SmallLoadingIndicator()
-                        }
+                                UiState.Idle -> {}
+                                UiState.Loading -> {
+                                    SmallLoadingIndicator()
+                                }
 
-                        is UiState.Success -> {
-                            Text(
-                                homeKeyUiState.data.key,
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp)
-                            )
+                                is UiState.Success -> {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            homeKeyUiState.data.key.take(15),
+                                            modifier = Modifier.padding(start = 16.dp, end = 16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        IconButton(onClick = {
+                                            clipboardManager.setText(
+                                                AnnotatedString(homeKeyUiState.data.key)
+                                            )
+                                            Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT)
+                                                .show()
+                                        }) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.baseline_content_copy_24),
+                                                contentDescription = "Copy"
+                                            )
+                                        }
+                                        IconButton(onClick = {
+                                            val sendIntent: Intent = Intent().apply {
+                                                action = Intent.ACTION_SEND
+                                                putExtra(
+                                                    Intent.EXTRA_TEXT, homeKeyUiState.data.key
+                                                )
+                                                type = "text/plain"
+                                            }
+                                            val shareIntent =
+                                                Intent.createChooser(sendIntent, null)
+                                            context.startActivity(shareIntent)
+                                        }) {
+                                            Icon(
+                                                Icons.Filled.Share,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-            }
-        }
 
-        items(daysList) { day ->
-            val dayOfMonth = currentDate.dayOfMonth + day - 1
-            val randomColor = remember(day) { generateLightColor() }
-            Card(
-                modifier = Modifier.fillMaxSize(),
-                colors = CardDefaults.cardColors(
-                    containerColor = randomColor
-                ),
-                shape = RoundedCornerShape(10)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .aspectRatio(1f), contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        dayOfMonth.toString(),
-                        style = MaterialTheme.typography.displayLarge
-                    )
+                when (currentDateUiState) {
+                    is UiState.Loading -> {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Spacer(modifier = Modifier.padding(top = 25.dp))
+                        }
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            LoadingDotsText(text = stringResource(R.string.loading_current_date))
+                        }
+                    }
+
+                    is UiState.Success -> {
+                        val dateInfo = currentDateUiState.data
+                        val currentDayOfMonth = dateInfo.day
+                        val daysInMonth =
+                            YearMonth.of(dateInfo.year, dateInfo.month).lengthOfMonth()
+                        val daysRemaining = daysInMonth - currentDayOfMonth + 1
+                        val daysList = (0 until daysRemaining).toList()
+
+                        items(daysList) { day ->
+                            val dayOfMonth = currentDayOfMonth + day
+                            val randomColor = remember(dayOfMonth) { generateLightColor() }
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable {
+                                        if (homeKeyUiState is UiState.Success) {
+                                            val dateString =
+                                                LocalDate.of(
+                                                    dateInfo.year,
+                                                    dateInfo.month,
+                                                    dayOfMonth
+                                                )
+                                                    .toString()
+                                            onNavigateHolidaysScreen(
+                                                dateString,
+                                                homeKeyUiState.data.key,
+                                                currentDateUiState.data.toString()
+                                            )
+                                        }
+                                    },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = randomColor
+                                ),
+                                shape = RoundedCornerShape(10)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .aspectRatio(1f),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            dayOfMonth.toString(),
+                                            style = MaterialTheme.typography.displayLarge
+                                        )
+                                        Text(
+                                            Month.of(dateInfo.month)
+                                                .getDisplayName(
+                                                    TextStyle.FULL,
+                                                    Locale.getDefault()
+                                                )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Button(
+                                onClick = {
+                                    showCalendarDialog = true
+                                },
+                                modifier = Modifier.defaultMinSize(
+                                    minHeight = OutlinedTextFieldDefaults.MinHeight
+                                )
+                            ) {
+                                Text(stringResource(R.string.another_date))
+                            }
+                        }
+                    }
+
+                    is UiState.Error -> {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Text(
+                                text = currentDateUiState.message,
+                                modifier = Modifier.padding(16.dp),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+
+                    UiState.Idle -> {}
                 }
             }
+        } else {
+            GetWishScreen(
+                wishesState = wishesState,
+                onGetWishes = onGetWishes,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f) // Added weight to take remaining space
+            )
         }
     }
+}
+
+@Composable
+fun LoadingDotsText(text: String) {
+    val infiniteTransition = rememberInfiniteTransition()
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+    val dotCount = (alpha * 3).toInt() + 1
+
+    Text(
+        text = text + ".".repeat(dotCount),
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 fun generateLightColor(): Color {
@@ -149,25 +365,28 @@ fun generateLightColor(): Color {
     return Color(red, green, blue)
 }
 
-@Preview
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun FancyIndicatorContainerTabs() {
+fun FancyIndicatorContainerTabs(onTabSelected: (Int) -> Unit) {
     var state by remember { mutableIntStateOf(0) }
     val titles = listOf(stringResource(R.string.send_wish), stringResource(R.string.get_wishes))
 
     Column {
         SecondaryTabRow(
             selectedTabIndex = state,
-            indicator = { FancyAnimatedIndicator(state) },
-            divider = {}
+            indicator = { FancyAnimatedIndicatorWithModifier(state) },
+            divider = {},
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp).clip(CircleShape)
         ) {
             titles.forEachIndexed { index, title ->
                 Tab(
                     selected = state == index,
-                    onClick = { state = index },
+                    onClick = {
+                        state = index
+                        onTabSelected(index)
+                    },
                     text = { Text(title) },
-                    modifier = Modifier.padding(vertical = 5.dp), // Simplified padding
+                    modifier = Modifier.defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight),
                 )
             }
         }
@@ -176,37 +395,84 @@ fun FancyIndicatorContainerTabs() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TabIndicatorScope.FancyAnimatedIndicator(index: Int) {
-    val colors = listOf(
-        MaterialTheme.colorScheme.primary,
-        MaterialTheme.colorScheme.secondary,
-        MaterialTheme.colorScheme.tertiary,
-    )
-    val indicatorColor by animateColorAsState(colors[index % colors.size], label = "")
-    val transition = updateTransition(index, label = "tab_indicator_transition")
-
-    val indicatorStart by transition.animateDp(transitionSpec = { spring(dampingRatio = 1f, stiffness = 2000f) }, label = "indicator_start") {
-        tabPositions[it].left
-    }
-    val indicatorEnd by transition.animateDp(transitionSpec = { spring(dampingRatio = 1f, stiffness = 2000f) }, label = "indicator_end") {
-        tabPositions[it].right
-    }
-
+fun TabIndicatorScope.FancyAnimatedIndicatorWithModifier(index: Int) {
+    val colors =
+        listOf(
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.secondary,
+            MaterialTheme.colorScheme.tertiary,
+        )
+    var startAnimatable by remember { mutableStateOf<Animatable<Dp, AnimationVector1D>?>(null) }
+    var endAnimatable by remember { mutableStateOf<Animatable<Dp, AnimationVector1D>?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    val indicatorColor: Color by animateColorAsState(colors[index % colors.size], label = "")
 
     Box(
         Modifier
-            .tabIndicatorOffset(it = indicatorStart)
-            .width(indicatorEnd - indicatorStart)
+            .tabIndicatorLayout { measurable: Measurable,
+                                  constraints: Constraints,
+                                  tabPositions: List<TabPosition> ->
+                val newStart = tabPositions[index].left
+                val newEnd = tabPositions[index].right
+                val startAnim =
+                    startAnimatable
+                        ?: Animatable(newStart, Dp.VectorConverter).also { startAnimatable = it }
+
+                val endAnim =
+                    endAnimatable
+                        ?: Animatable(newEnd, Dp.VectorConverter).also { endAnimatable = it }
+
+                if (endAnim.targetValue != newEnd) {
+                    coroutineScope.launch {
+                        endAnim.animateTo(
+                            newEnd,
+                            animationSpec =
+                            if (endAnim.targetValue < newEnd) {
+                                spring(dampingRatio = 1f, stiffness = 1000f)
+                            } else {
+                                spring(dampingRatio = 1f, stiffness = 50f)
+                            }
+                        )
+                    }
+                }
+
+                if (startAnim.targetValue != newStart) {
+                    coroutineScope.launch {
+                        startAnim.animateTo(
+                            newStart,
+                            animationSpec =
+                            if (startAnim.targetValue < newStart) {
+                                spring(dampingRatio = 1f, stiffness = 50f)
+                            } else {
+                                spring(dampingRatio = 1f, stiffness = 1000f)
+                            }
+                        )
+                    }
+                }
+
+                val indicatorEnd = endAnim.value.roundToPx()
+                val indicatorStart = startAnim.value.roundToPx()
+
+                val placeable =
+                    measurable.measure(
+                        constraints.copy(
+                            maxWidth = indicatorEnd - indicatorStart,
+                            minWidth = indicatorEnd - indicatorStart,
+                        )
+                    )
+                layout(constraints.maxWidth, constraints.maxHeight) {
+                    placeable.place(indicatorStart, 0)
+                }
+            }
             .padding(1.dp)
-            .fillMaxHeight()
+            .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
             .drawWithContent {
                 drawRoundRect(
                     color = indicatorColor,
                     cornerRadius = CornerRadius(100.dp.toPx()),
-                    style = Stroke(width = 2.dp.toPx())
+                    style = Stroke(width = 1.dp.toPx())
                 )
             }
-            .background(Color.Gray)
     )
 }
 
@@ -214,6 +480,30 @@ fun TabIndicatorScope.FancyAnimatedIndicator(index: Int) {
 @Composable
 fun PreviewHomeScreen() {
     Box(modifier = Modifier.padding(top = 40.dp)) {
-        HomeScreen(homeKeyUiState = UiState.Loading, onGetWishKey = {})
+        HomeScreen(
+            homeKeyUiState = UiState.Idle,
+            onGetWishKey = {},
+            currentDateUiState = UiState.Success(
+                DateInfo(
+                    day = 27,
+                    formatted = "27.12.2024 02:09",
+                    hour = 2,
+                    minute = 9,
+                    month = 12,
+                    timestamp = 1735254593755,
+                    timezone = "Europe/Moscow",
+                    weekDay = 5,
+                    year = 2024
+                )
+            ),
+            onGetTime = {},
+            onNavigateHolidaysScreen = { _, _, _ ->
+
+            },
+            wishesState = UiState.Idle,
+            onGetWishes = {
+
+            }
+        )
     }
 }

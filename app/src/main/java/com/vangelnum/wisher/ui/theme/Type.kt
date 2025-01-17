@@ -44,7 +44,7 @@ val AppTypography = Typography(
     headlineMedium = TextStyle(
         fontFamily = InterTight,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 24.sp
+        fontSize = 26.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = InterTight,

@@ -4,8 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.vangelnum.wisher.core.utils.ErrorUtils
 import com.vangelnum.wisher.features.auth.api.AuthApi
-import com.vangelnum.wisher.features.auth.data.repository.UserRepository
-import com.vangelnum.wisher.features.auth.domain.repository.UserRepositoryImpl
+import com.vangelnum.wisher.features.auth.data.repository.UserRepositoryImpl
+import com.vangelnum.wisher.features.auth.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
