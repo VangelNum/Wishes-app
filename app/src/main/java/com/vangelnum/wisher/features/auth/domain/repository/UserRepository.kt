@@ -2,8 +2,9 @@ package com.vangelnum.wisher.features.auth.domain.repository
 
 import com.vangelnum.wisher.features.auth.data.model.AuthResponse
 import com.vangelnum.wisher.features.auth.data.model.RegistrationRequest
+import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
-    suspend fun register(registrationRequest: RegistrationRequest): Result<AuthResponse>
-    suspend fun getUserInfo(authorizationHeader: String): Result<AuthResponse>
+    fun register(registrationRequest: RegistrationRequest): Flow<AuthResponse>
+    fun getUserInfo(authorizationHeader: String): Flow<AuthResponse>
 }

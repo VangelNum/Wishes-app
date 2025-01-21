@@ -7,27 +7,35 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,12 +44,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowInsetsCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -67,34 +79,121 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+            val snackbarHostState = remember { SnackbarHostState() }
             val scope = rememberCoroutineScope()
             val loginViewModel: LoginViewModel = hiltViewModel()
             val loginState = loginViewModel.loginUiState.collectAsState().value
             val registrationViewModel: UploadAvatarViewModel = hiltViewModel()
             val registrationState =
-                registrationViewModel.registrationState.collectAsStateWithLifecycle().value
+                registrationViewModel.registrationUiState.collectAsStateWithLifecycle().value
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             var shouldShowAppBar by remember {
                 mutableStateOf(false)
             }
+            var showMenuIcon by remember {
+                mutableStateOf(false)
+            }
             navBackStackEntry?.destination?.let { currentDestination ->
                 shouldShowAppBar =
-                    !currentDestination.hasRoute(LoginPage::class) && !currentDestination.hasRoute(
-                        RegistrationPage::class
-                    ) && !currentDestination.hasRoute(UploadAvatarPage::class)
+                    !currentDestination.hasRoute(LoginPage::class) &&
+                            !currentDestination.hasRoute(RegistrationPage::class) &&
+                            !currentDestination.hasRoute(UploadAvatarPage::class)
+            }
+            navBackStackEntry?.destination?.let { currentDestination ->
+                showMenuIcon = currentDestination.hasRoute(HomePage::class)
+            }
+            val view = LocalView.current
+            val statusBarHeight = with(LocalDensity.current) {
+                WindowInsetsCompat.toWindowInsetsCompat(view.rootWindowInsets, view)
+                    .getInsets(WindowInsetsCompat.Type.statusBars())
+                    .top.toDp()
+            }
+            val navigationBarHeight = with(LocalDensity.current) {
+                WindowInsetsCompat.toWindowInsetsCompat(view.rootWindowInsets, view)
+                    .getInsets(WindowInsetsCompat.Type.navigationBars())
+                    .bottom.toDp()
             }
 
             WisherappTheme {
                 ModalNavigationDrawer(
+                    gesturesEnabled = drawerState.isOpen,
                     drawerState = drawerState,
                     drawerContent = {
-                        ModalDrawerSheet {
-                            if (loginState is UiState.Success) {
-                                ProfileImage(image = loginState.data.avatarUrl)
-                            } else if (registrationState is UiState.Success) {
-                                ProfileImage(image = registrationState.data.avatarUrl)
+                        ModalDrawerSheet(
+                            modifier = Modifier.padding(
+                                top = statusBarHeight,
+                                bottom = navigationBarHeight
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(
+                                        16.dp,
+                                        Alignment.CenterHorizontally
+                                    ),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    if (loginState is UiState.Success) {
+                                        ProfileImage(
+                                            image = loginState.data.avatarUrl,
+                                            name = loginState.data.name
+                                        )
+                                    } else if (registrationState is UiState.Success) {
+                                        ProfileImage(
+                                            image = registrationState.data.avatarUrl,
+                                            name = registrationState.data.name
+                                        )
+                                    }
+                                }
+                                IconButton(onClick = {
+                                    scope.launch {
+                                        drawerState.close()
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Close,
+                                        contentDescription = "close"
+                                    )
+                                }
                             }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            HorizontalDivider(
+                                color = androidx.compose.ui.graphics.Color.Gray.copy(
+                                    alpha = 0.7f
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            NavigationDrawerItem(
+                                label = { Text(text = "Профиль") },
+                                selected = false,
+                                onClick = {
+
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.Person,
+                                        contentDescription = "person"
+                                    )
+                                }
+                            )
+                            NavigationDrawerItem(
+                                label = { Text(text = "Отправленные пожелания") },
+                                selected = false,
+                                onClick = {
+
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Send,
+                                        contentDescription = "wishes_send"
+                                    )
+                                }
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
                             NavigationDrawerItem(
                                 label = { Text(text = stringResource(R.string.exit)) },
                                 selected = false,
@@ -106,39 +205,31 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate(LoginPage) {
                                         popUpTo(0)
                                     }
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                        contentDescription = "exit"
+                                    )
                                 }
                             )
                         }
                     }
                 ) {
                     Scaffold(
+                        snackbarHost = { SnackbarHost(snackbarHostState) },
                         topBar = {
                             if (shouldShowAppBar) {
-                                CenterAlignedTopAppBar(
-                                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                                        containerColor = androidx.compose.ui.graphics.Color.Transparent
-                                    ),
-                                    navigationIcon = {
-                                        IconButton(onClick = {
-                                            scope.launch {
-                                                drawerState.apply {
-                                                    if (isClosed) open() else close()
-                                                }
-                                            }
-                                        }) {
-                                            Icon(
-                                                imageVector = Icons.Filled.Menu,
-                                                contentDescription = null
-                                            )
-                                        }
+                                AppTopBar(
+                                    modifier = Modifier,
+                                    loginState = loginState,
+                                    registrationState = registrationState,
+                                    onBack = {
+                                        navController.popBackStack()
                                     },
-                                    title = {
-                                        Image(
-                                            painter = painterResource(R.drawable.logo),
-                                            contentDescription = null,
-                                            modifier = Modifier.height(40.dp)
-                                        )
-                                    }
+                                    showMenuIcon = showMenuIcon,
+                                    scope = scope,
+                                    drawerState = drawerState
                                 )
                             }
                         },
@@ -155,12 +246,17 @@ class MainActivity : ComponentActivity() {
                                 alpha = 0.7f
                             )
                             AppNavHost(
-                                modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).safeContentPadding(),
+                                modifier = Modifier.padding(innerPadding),
                                 navController = navController,
                                 loginViewModel = loginViewModel,
                                 loginState = loginState,
                                 registrationViewModel = registrationViewModel,
-                                registrationState = registrationState
+                                registrationState = registrationState,
+                                showSnackbar = { message ->
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(message)
+                                    }
+                                }
                             )
                         }
                     }
@@ -171,7 +267,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ProfileImage(modifier: Modifier = Modifier, image: String?) {
+fun ProfileImage(modifier: Modifier = Modifier, image: String?, name: String) {
     if (image == null) {
         Card(
             shape = CircleShape,
@@ -186,6 +282,7 @@ fun ProfileImage(modifier: Modifier = Modifier, image: String?) {
                 contentScale = ContentScale.Crop
             )
         }
+        Text(name, style = MaterialTheme.typography.titleLarge)
     } else {
         Card(
             shape = CircleShape,
@@ -200,5 +297,6 @@ fun ProfileImage(modifier: Modifier = Modifier, image: String?) {
                 contentScale = ContentScale.Crop
             )
         }
+        Text(name, style = MaterialTheme.typography.titleLarge)
     }
 }

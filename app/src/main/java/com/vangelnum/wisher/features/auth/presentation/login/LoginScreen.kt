@@ -65,7 +65,7 @@ fun LoginScreen(
             }, buttonMessage = stringResource(R.string.back))
         }
 
-        UiState.Loading -> {
+        is UiState.Loading -> {
             LoadingScreen()
         }
 
@@ -73,7 +73,7 @@ fun LoginScreen(
             onNavigateToHomeScreen()
         }
 
-        UiState.Idle -> {
+        is UiState.Idle -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()

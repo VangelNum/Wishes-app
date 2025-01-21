@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -49,6 +50,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabIndicatorScope
 import androidx.compose.material3.TabPosition
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -78,7 +80,8 @@ import androidx.compose.ui.unit.dp
 import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.SmallLoadingIndicator
-import com.vangelnum.wisher.features.home.getwish.data.model.GetWishResponse
+import com.vangelnum.wisher.features.home.getwish.data.model.WishDatesInfo
+import com.vangelnum.wisher.features.home.getwish.data.model.WishResponse
 import com.vangelnum.wisher.features.home.getwish.presentation.GetWishScreen
 import com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.data.model.WishKey
 import com.vangelnum.wisher.features.home.sendwish.stage1.worldtime.data.model.DateInfo
@@ -94,13 +97,17 @@ import kotlin.random.Random
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    homeKeyUiState: UiState<WishKey>,
+    keyUiState: UiState<WishKey>,
     currentDateUiState: UiState<DateInfo>,
     onGetWishKey: () -> Unit,
     onGetTime: () -> Unit,
     onNavigateHolidaysScreen: (String, String, String) -> Unit,
-    onGetWishes: (key: String) -> Unit,
-    wishesState: UiState<List<GetWishResponse>>
+    onGetWishesDates: (key: String) -> Unit,
+    wishesDatesState: UiState<List<WishDatesInfo>>,
+    showSnackbar: (String) -> Unit,
+    wishState: UiState<WishResponse>,
+    onOpenWish: (key: String, id: Int) -> Unit,
+    onRegenerateKey: () -> Unit
 ) {
     LaunchedEffect(true) {
         onGetWishKey()
@@ -112,12 +119,16 @@ fun HomeScreen(
     var showCalendarDialog by remember { mutableStateOf(false) }
     var selectedHolidayDate by remember { mutableStateOf<LocalDate?>(null) }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val wishKey = remember {
+        mutableStateOf("")
+    }
+    var showRegenerateConfirmationDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(selectedHolidayDate) {
-        if (selectedHolidayDate != null && homeKeyUiState is UiState.Success && currentDateUiState is UiState.Success) {
+        if (selectedHolidayDate != null && keyUiState is UiState.Success && currentDateUiState is UiState.Success) {
             onNavigateHolidaysScreen(
                 selectedHolidayDate.toString(),
-                homeKeyUiState.data.key,
+                keyUiState.data.key,
                 currentDateUiState.data.toString()
             )
         }
@@ -147,6 +158,29 @@ fun HomeScreen(
         }
     }
 
+    if (showRegenerateConfirmationDialog) {
+        AlertDialog(
+            onDismissRequest = { showRegenerateConfirmationDialog = false },
+            title = { Text("Подтверждение смены ключа") },
+            text = { Text("Вы уверены, что хотите изменить ключ? Ваши пожелания не удалятся. Текущий ключ станет недоступен. Пожелания станут доступны только по новому ключу.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onRegenerateKey()
+                    showRegenerateConfirmationDialog = false
+                }) {
+                    Text("Да")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showRegenerateConfirmationDialog = false
+                }) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
+
     Column(modifier = modifier.fillMaxSize()) {
         FancyIndicatorContainerTabs(onTabSelected = { index -> selectedTabIndex = index })
         if (selectedTabIndex == 0) {
@@ -169,16 +203,16 @@ fun HomeScreen(
                         SelectionContainer(
                             modifier = Modifier.defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
                         ) {
-                            when (homeKeyUiState) {
+                            when (keyUiState) {
                                 is UiState.Error -> {
                                     Text(
-                                        homeKeyUiState.message,
+                                        keyUiState.message,
                                         modifier = Modifier.padding(start = 16.dp, end = 16.dp)
                                     )
                                 }
 
-                                UiState.Idle -> {}
-                                UiState.Loading -> {
+                                is UiState.Idle -> {}
+                                is UiState.Loading -> {
                                     SmallLoadingIndicator()
                                 }
 
@@ -190,15 +224,27 @@ fun HomeScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            homeKeyUiState.data.key.take(15),
+                                            keyUiState.data.key.take(15),
                                             modifier = Modifier.padding(start = 16.dp, end = 16.dp)
                                         )
                                         Spacer(modifier = Modifier.weight(1f))
                                         IconButton(onClick = {
-                                            clipboardManager.setText(
-                                                AnnotatedString(homeKeyUiState.data.key)
+                                            showRegenerateConfirmationDialog = true
+                                        }) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.update_icon),
+                                                contentDescription = "Change key"
                                             )
-                                            Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT)
+                                        }
+                                        IconButton(onClick = {
+                                            clipboardManager.setText(
+                                                AnnotatedString(keyUiState.data.key)
+                                            )
+                                            Toast.makeText(
+                                                context,
+                                                R.string.copied,
+                                                Toast.LENGTH_SHORT
+                                            )
                                                 .show()
                                         }) {
                                             Icon(
@@ -210,7 +256,7 @@ fun HomeScreen(
                                             val sendIntent: Intent = Intent().apply {
                                                 action = Intent.ACTION_SEND
                                                 putExtra(
-                                                    Intent.EXTRA_TEXT, homeKeyUiState.data.key
+                                                    Intent.EXTRA_TEXT, keyUiState.data.key
                                                 )
                                                 type = "text/plain"
                                             }
@@ -255,17 +301,18 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clickable {
-                                        if (homeKeyUiState is UiState.Success) {
+                                        if (keyUiState is UiState.Success) {
                                             val dateString =
-                                                LocalDate.of(
-                                                    dateInfo.year,
-                                                    dateInfo.month,
-                                                    dayOfMonth
-                                                )
+                                                LocalDate
+                                                    .of(
+                                                        dateInfo.year,
+                                                        dateInfo.month,
+                                                        dayOfMonth
+                                                    )
                                                     .toString()
                                             onNavigateHolidaysScreen(
                                                 dateString,
-                                                homeKeyUiState.data.key,
+                                                keyUiState.data.key,
                                                 currentDateUiState.data.toString()
                                             )
                                         }
@@ -323,16 +370,19 @@ fun HomeScreen(
                         }
                     }
 
-                    UiState.Idle -> {}
+                    is UiState.Idle -> {}
                 }
             }
         } else {
             GetWishScreen(
-                wishesState = wishesState,
-                onGetWishes = onGetWishes,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f) // Added weight to take remaining space
+                wishesDateState = wishesDatesState,
+                onGetWishesDates = onGetWishesDates,
+                modifier = Modifier,
+                currentDateState = currentDateUiState,
+                showSnackbar = showSnackbar,
+                wishState = wishState,
+                onOpenWish = onOpenWish,
+                wishKey = wishKey
             )
         }
     }
@@ -376,7 +426,9 @@ fun FancyIndicatorContainerTabs(onTabSelected: (Int) -> Unit) {
             selectedTabIndex = state,
             indicator = { FancyAnimatedIndicatorWithModifier(state) },
             divider = {},
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp).clip(CircleShape)
+            modifier = Modifier
+                .padding(start = 8.dp, end = 8.dp)
+                .clip(CircleShape)
         ) {
             titles.forEachIndexed { index, title ->
                 Tab(
@@ -481,7 +533,7 @@ fun TabIndicatorScope.FancyAnimatedIndicatorWithModifier(index: Int) {
 fun PreviewHomeScreen() {
     Box(modifier = Modifier.padding(top = 40.dp)) {
         HomeScreen(
-            homeKeyUiState = UiState.Idle,
+            keyUiState = UiState.Idle(),
             onGetWishKey = {},
             currentDateUiState = UiState.Success(
                 DateInfo(
@@ -500,10 +552,14 @@ fun PreviewHomeScreen() {
             onNavigateHolidaysScreen = { _, _, _ ->
 
             },
-            wishesState = UiState.Idle,
-            onGetWishes = {
+            wishesDatesState = UiState.Idle(),
+            onGetWishesDates = {
 
-            }
+            },
+            showSnackbar = {},
+            onOpenWish = { _, _ -> },
+            wishState = UiState.Idle(),
+            onRegenerateKey = {}
         )
     }
 }

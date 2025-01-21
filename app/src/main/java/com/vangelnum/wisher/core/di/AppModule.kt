@@ -14,6 +14,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
+import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
@@ -43,6 +46,9 @@ object AppModule {
         authInterceptor: AuthInterceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
             .addInterceptor(loggingInterceptor)
             .addInterceptor(authInterceptor)
             .build()
@@ -50,9 +56,20 @@ object AppModule {
 
     @Provides
     @Singleton
+    @Named("PlainTextRetrofit")
+    fun providePlainTextRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://wishes-vangel.amvera.io/")
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .client(okHttpClient)
+            .build()
+    }
+
+    @Provides
+    @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://wisher-ihz2.onrender.com/")
+            .baseUrl("https://wishes-vangel.amvera.io/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient)
             .build()

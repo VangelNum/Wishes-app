@@ -5,6 +5,6 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface WorldTimeApi {
-    @GET("now")
+    @GET("/api/v1/world-time/now")
     suspend fun getCurrentDate(@Query("tz") timezone: String = "Europe/Moscow"): DateInfo
 }

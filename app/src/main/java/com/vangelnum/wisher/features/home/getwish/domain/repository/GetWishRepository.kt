@@ -1,7 +1,11 @@
 package com.vangelnum.wisher.features.home.getwish.domain.repository
 
-import com.vangelnum.wisher.features.home.getwish.data.model.GetWishResponse
+import com.vangelnum.wisher.core.data.UiState
+import com.vangelnum.wisher.features.home.getwish.data.model.WishDatesInfo
+import com.vangelnum.wisher.features.home.getwish.data.model.WishResponse
+import kotlinx.coroutines.flow.Flow
 
 interface GetWishRepository {
-    suspend fun getWishesByKey(key: String): List<GetWishResponse>
+    fun getDatesByKey(key: String): Flow<UiState<List<WishDatesInfo>>>
+    fun getWishes(key: String, id: Int): Flow<UiState<WishResponse>>
 }

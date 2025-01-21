@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -28,7 +29,7 @@ import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.ErrorScreen
 import com.vangelnum.wisher.core.presentation.LoadingScreen
-import com.vangelnum.wisher.features.home.sendwish.stage2.data.Holiday
+import com.vangelnum.wisher.features.home.sendwish.stage2.data.model.Holiday
 
 @Composable
 fun HolidaysScreen(
@@ -49,13 +50,17 @@ fun HolidaysScreen(
                     buttonMessage = stringResource(R.string.try_again),
                     content = {
                         Box(modifier = Modifier.fillMaxWidth()) {
-                            Button(onClick = {
-                                onContinueClick(holidayDate, key, Holiday(""), "")
-                            }, modifier = Modifier.fillMaxWidth()) {
+                            ElevatedButton(
+                                onClick = {
+                                    onContinueClick(holidayDate, key, Holiday(""), currentDate)
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
+                            ) {
                                 Text(
                                     stringResource(R.string.continue_string),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
+                                    textAlign = TextAlign.Center
                                 )
                             }
                         }
@@ -64,8 +69,8 @@ fun HolidaysScreen(
             }
         }
 
-        UiState.Idle -> {}
-        UiState.Loading -> {
+        is UiState.Idle -> {}
+        is UiState.Loading -> {
             LoadingScreen(text = stringResource(R.string.loading_holidays))
         }
 
@@ -148,7 +153,7 @@ fun PreviewHolidaysScreen() {
             )
         ),
         onTryAgainLoadingHolidays = {},
-        onContinueClick = { _, _, _,_ ->
+        onContinueClick = { _, _, _, _ ->
 
         },
         currentDate = ""
@@ -164,7 +169,7 @@ fun PreviewHolidaysErrorScreen() {
         key = "testkey",
         holidaysState = UiState.Error("Не удалось загрузить праздники"),
         onTryAgainLoadingHolidays = {},
-        onContinueClick = { _, _, _,_ ->
+        onContinueClick = { _, _, _, _ ->
 
         },
         currentDate = ""

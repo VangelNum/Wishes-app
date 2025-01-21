@@ -4,8 +4,8 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface GenerateImageApi {
-    @GET("/prompt/{prompt}")
+interface GenerationImageApi {
+    @GET("/api/v1/generate/image/{prompt}")
     suspend fun generateImage(
         @Path("prompt") prompt: String,
         @Query("model") model: String,
@@ -15,6 +15,6 @@ interface GenerateImageApi {
         @Query("nologo") nologo: Boolean
     )
 
-    @GET("/models")
+    @GET("/api/v1/generate/image/models")
     suspend fun getListOfModels(): List<String>
 }

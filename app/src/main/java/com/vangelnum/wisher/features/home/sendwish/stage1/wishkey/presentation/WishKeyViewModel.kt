@@ -10,6 +10,8 @@ import com.vangelnum.wisher.features.home.sendwish.stage1.worldtime.domain.repos
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,57 +20,44 @@ class WishKeyViewModel @Inject constructor(
     private val wishKeyRepository: WishKeyRepository,
     private val worldTimeRepository: WorldTimeRepository
 ) : ViewModel() {
-    private val _homeUiState = MutableStateFlow<UiState<WishKey>>(UiState.Loading)
-    val homeKeyUiState = _homeUiState.asStateFlow()
+    private val _keyUiState = MutableStateFlow<UiState<WishKey>>(UiState.Loading())
+    val keyUiState = _keyUiState.asStateFlow()
 
-    private val _dateUiState = MutableStateFlow<UiState<DateInfo>>(UiState.Idle)
+    private val _dateUiState = MutableStateFlow<UiState<DateInfo>>(UiState.Idle())
     val dateUiState = _dateUiState.asStateFlow()
 
     fun onEvent(event: WishKeyEvent) {
         when (event) {
             WishKeyEvent.OnGetWishKeyKey -> getWishKey()
             WishKeyEvent.OnGetDate -> getDate()
-            WishKeyEvent.OnGenerateWishKeyKey -> generateWishKey()
+            WishKeyEvent.OnRegenerateWishKey -> regenerateWishKey()
         }
     }
 
     private fun getDate() {
         viewModelScope.launch {
-            _dateUiState.value = UiState.Loading
-            try {
-                val timeInfo = worldTimeRepository.getCurrentDate()
-                _dateUiState.value = UiState.Success(timeInfo)
-            } catch (e: Exception) {
-                _dateUiState.value =
-                    UiState.Error(e.localizedMessage ?: "Failed to fetch time")
+            worldTimeRepository.getCurrentDate().collectLatest { state ->
+                _dateUiState.update {
+                    state
+                }
             }
         }
     }
 
     private fun getWishKey() {
         viewModelScope.launch {
-            _homeUiState.value = UiState.Loading
-            try {
-                val key = wishKeyRepository.getWishKey()
-                if (key == null) generateWishKey() else {
-                    _homeUiState.value = UiState.Success(key)
-                }
-            } catch (e: Exception) {
-                _homeUiState.value =
-                    UiState.Error(e.localizedMessage ?: "An unexpected error occurred")
+            wishKeyRepository.getWishKey().collectLatest { state ->
+                _keyUiState.update { state }
             }
         }
     }
 
-    private fun generateWishKey() {
+    private fun regenerateWishKey() {
         viewModelScope.launch {
-            _homeUiState.value = UiState.Loading
-            try {
-                val newKey = wishKeyRepository.generateWishKey()
-                _homeUiState.value = UiState.Success(newKey)
-            } catch (e: Exception) {
-                _homeUiState.value =
-                    UiState.Error(e.localizedMessage ?: "Failed to generate wish key")
+            wishKeyRepository.regenerateWishKey().collectLatest { state ->
+                _keyUiState.update {
+                    state
+                }
             }
         }
     }

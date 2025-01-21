@@ -44,7 +44,6 @@ import com.vangelnum.wisher.core.presentation.LoadingScreen
 import com.vangelnum.wisher.features.auth.data.model.AuthResponse
 import com.vangelnum.wisher.features.auth.data.model.RegistrationRequest
 import com.vangelnum.wisher.features.auth.presentation.registration.stage1.RegistrationEvent
-import com.vangelnum.wisher.features.auth.presentation.registration.stage2.data.model.UploadAvatarResponse
 
 @Composable
 fun LoadAvatarScreen(
@@ -53,7 +52,7 @@ fun LoadAvatarScreen(
     email: String,
     password: String,
     registrationState: UiState<AuthResponse>,
-    uploadAvatarState: UiState<UploadAvatarResponse>,
+    uploadAvatarState: UiState<String>,
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit,
     onEvent: (RegistrationEvent) -> Unit
@@ -107,8 +106,8 @@ fun LoadAvatarScreen(
                 modifier = Modifier.size(150.dp)
             ) {
                 if (uploadAvatarState is UiState.Success) {
-                    val imageUrl =  uploadAvatarState.data.data?.url
-                    imageUrl?.let {
+                    val imageUrl =  uploadAvatarState.data
+                    imageUrl.let {
                         AsyncImage(
                             model = it,
                             contentDescription = null,
@@ -147,7 +146,7 @@ fun LoadAvatarScreen(
                 val user = RegistrationRequest(name, email, password)
                 if (selectedImageUri != null) {
                     if (uploadAvatarState is UiState.Success) {
-                        onEvent(RegistrationEvent.OnRegisterUser(user.copy(avatarUrl = uploadAvatarState.data.data?.url)))
+                        onEvent(RegistrationEvent.OnRegisterUser(user.copy(avatarUrl = uploadAvatarState.data)))
                     }
                 } else {
                     onEvent(RegistrationEvent.OnRegisterUser(user))
@@ -187,10 +186,10 @@ fun LoadAvatarScreenPreview() {
         LoadAvatarScreen(
             name = "testuser",
             email = "test@example.com",
-            registrationState = UiState.Idle,
+            registrationState = UiState.Idle(),
             password = "password",
             onNavigateBack = {},
-            uploadAvatarState = UiState.Idle,
+            uploadAvatarState = UiState.Idle(),
             onNavigateToHome = {},
             onEvent = {}
         )

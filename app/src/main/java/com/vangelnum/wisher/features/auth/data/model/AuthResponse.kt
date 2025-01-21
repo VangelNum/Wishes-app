@@ -7,5 +7,5 @@ data class AuthResponse(
     val email: String,
     val avatarUrl: String?,
     val role: String,
-    val maxWishes: Int
+    val coins: Int
 )

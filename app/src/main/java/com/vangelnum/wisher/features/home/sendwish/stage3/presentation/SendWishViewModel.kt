@@ -9,6 +9,8 @@ import com.vangelnum.wisher.features.home.sendwish.stage3.domain.repository.Send
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,30 +18,22 @@ import javax.inject.Inject
 class SendWishViewModel @Inject constructor(
     private val sendWishRepository: SendWishRepository
 ) : ViewModel() {
-    private val _modelsList = MutableStateFlow<UiState<List<String>>>(UiState.Idle)
-    val modelsList = _modelsList.asStateFlow()
 
-    private val _generateImageState = MutableStateFlow<UiState<String>>(UiState.Idle)
-    val generateImageState = _generateImageState.asStateFlow()
-
-    private val _sendWishState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
-    val sendWishState = _sendWishState.asStateFlow()
-
-    private val _uploadImageState = MutableStateFlow<UiState<String>>(UiState.Idle)
-    val uploadImageState = _uploadImageState.asStateFlow()
+    private val _sendWishUiState = MutableStateFlow(SendWishUiState())
+    val sendWishUiState = _sendWishUiState.asStateFlow()
 
     init {
-        onEvent(SendWishEvent.OnGetModels)
+        onEvent(SendWishEvent.OnGetImageModels)
     }
 
     fun onEvent(event: SendWishEvent) {
         when (event) {
             is SendWishEvent.OnGenerateImage -> {
-                generateImage(event.prompt, event.model)
+                generateImageWithPrompt(event.prompt, event.model)
             }
 
-            SendWishEvent.OnGetModels -> {
-                getModels()
+            SendWishEvent.OnGetImageModels -> {
+                getImageModels()
             }
 
             is SendWishEvent.OnSendWish -> {
@@ -59,7 +53,56 @@ class SendWishViewModel @Inject constructor(
             }
 
             SendWishEvent.OnSendBackState -> {
-                _sendWishState.value = UiState.Idle
+                _sendWishUiState.update { it.copy(sendWishState = UiState.Idle()) }
+            }
+
+            is SendWishEvent.OnImproveWishPrompt -> {
+                improveWishPrompt(event.prompt, event.model, event.languageCode)
+            }
+
+            is SendWishEvent.OnGenerateWishPromptByHoliday -> {
+                generateWishPromptByHolidayName(event.holiday, event.model, event.languageCode)
+            }
+        }
+    }
+
+    private fun generateWishPromptByHolidayName(
+        holidayName: String,
+        model: String?,
+        languageCode: String?
+    ) {
+        _sendWishUiState.update { it.copy(generateTextState = UiState.Loading()) }
+        viewModelScope.launch {
+            try {
+                val translatedText = sendWishRepository.translateTextToEnglish(holidayName)
+                val response = sendWishRepository.generateWishPromptByHolidayName(
+                    translatedText,
+                    model,
+                    languageCode
+                )
+                _sendWishUiState.update {
+                    it.copy(
+                        generateTextState = UiState.Success(
+                            response
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _sendWishUiState.update { it.copy(generateTextState = UiState.Idle()) }
+            }
+        }
+    }
+
+    private fun improveWishPrompt(prompt: String, model: String? = null, languageCode: String?) {
+        _sendWishUiState.update { it.copy(generateTextState = UiState.Loading()) }
+        viewModelScope.launch {
+            try {
+                val translatedText = sendWishRepository.translateTextToEnglish(prompt)
+                val response = sendWishRepository.improveWishPrompt(translatedText, model, languageCode)
+                _sendWishUiState.update { it.copy(generateTextState = UiState.Success(response)) }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -73,7 +116,7 @@ class SendWishViewModel @Inject constructor(
         blurred: Boolean,
         cost: Int
     ) {
-        _sendWishState.value = UiState.Loading
+        _sendWishUiState.update { it.copy(sendWishState = UiState.Loading()) }
         viewModelScope.launch {
             try {
                 sendWishRepository.sendWish(
@@ -87,49 +130,57 @@ class SendWishViewModel @Inject constructor(
                         cost
                     )
                 )
-                _sendWishState.value = UiState.Success(Unit)
+                _sendWishUiState.update { it.copy(sendWishState = UiState.Success(Unit)) }
             } catch (e: Exception) {
-                e.printStackTrace()
-                _sendWishState.value = UiState.Error(e.message ?: "Failed to send wish")
+                _sendWishUiState.update {
+                    it.copy(
+                        sendWishState = UiState.Error(
+                            e.localizedMessage ?: "Ошибка отправки пожелания"
+                        )
+                    )
+                }
             }
         }
     }
 
-    private fun getModels() {
-        _modelsList.value = UiState.Loading
+    private fun getImageModels() {
+        _sendWishUiState.update { it.copy(modelsListState = UiState.Loading()) }
         viewModelScope.launch {
-            try {
-                val response = sendWishRepository.listOfModels()
-                _modelsList.value = UiState.Success(response)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _modelsList.value = UiState.Error("Failed to get models: ${e.message}")
+            sendWishRepository.getImageModels().collectLatest { state ->
+                _sendWishUiState.update {
+                    it.copy(
+                        modelsListState = state
+                    )
+                }
             }
         }
     }
 
-    fun generateImage(prompt: String, model: String) {
-        _generateImageState.value = UiState.Loading
+    fun generateImageWithPrompt(prompt: String, model: String) {
+        _sendWishUiState.update { it.copy(generateImageState = UiState.Loading()) }
         viewModelScope.launch {
             try {
-                val response = sendWishRepository.generateImage(prompt, model)
-                _generateImageState.value = UiState.Success(response)
+                val translateText = sendWishRepository.translateTextToEnglish(prompt)
+                val improvedPrompt =
+                    "Enhance the following image prompt to create a more vivid and engaging greeting card design: $translateText. Focus on visual details, ensuring the composition is suitable for a card. Include elements that evoke a sense of celebration and joy."
+                val response = sendWishRepository.generateImage(improvedPrompt, model)
+                _sendWishUiState.update { it.copy(generateImageState = UiState.Success(response)) }
             } catch (e: Exception) {
                 e.printStackTrace()
-                _generateImageState.value = UiState.Error("Failed to generate image: ${e.message}")
+                _sendWishUiState.update { it.copy(generateImageState = UiState.Error("Ошибка при генерации изображения: ${e.message}")) }
             }
         }
     }
 
     private fun uploadImage(imageUri: Uri) {
-        _uploadImageState.value = UiState.Loading
+        _sendWishUiState.update { it.copy(uploadImageState = UiState.Loading()) }
         viewModelScope.launch {
-            try {
-                val imageUrl = sendWishRepository.uploadImage(imageUri)
-                _uploadImageState.value = UiState.Success(imageUrl)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _uploadImageState.value = UiState.Error("Failed to upload image: ${e.message}")
+            sendWishRepository.uploadImage(imageUri).collectLatest { state ->
+                _sendWishUiState.update {
+                    it.copy(
+                        uploadImageState = state
+                    )
+                }
             }
         }
     }

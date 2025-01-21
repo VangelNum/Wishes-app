@@ -2,7 +2,7 @@ package com.vangelnum.wisher.features.home.getwish.data.model
 
 import com.vangelnum.wisher.features.home.User
 
-data class GetWishResponse(
+data class WishResponse(
     val id: Int,
     val text: String,
     val user: User,

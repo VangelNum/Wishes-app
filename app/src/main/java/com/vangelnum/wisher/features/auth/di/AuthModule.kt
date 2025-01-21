@@ -2,7 +2,6 @@ package com.vangelnum.wisher.features.auth.di
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.vangelnum.wisher.core.utils.ErrorUtils
 import com.vangelnum.wisher.features.auth.api.AuthApi
 import com.vangelnum.wisher.features.auth.data.repository.UserRepositoryImpl
 import com.vangelnum.wisher.features.auth.domain.repository.UserRepository
@@ -24,7 +23,7 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideUserRepository(api: AuthApi, errorUtils: ErrorUtils, dataStore: DataStore<Preferences>): UserRepository {
-        return UserRepositoryImpl(api, errorUtils, dataStore)
+    fun provideUserRepository(api: AuthApi, dataStore: DataStore<Preferences>): UserRepository {
+        return UserRepositoryImpl(api, dataStore)
     }
 }

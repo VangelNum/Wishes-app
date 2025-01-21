@@ -11,6 +11,8 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +20,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -26,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,7 +43,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CaretProperties
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -78,6 +82,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.ErrorScreen
@@ -96,10 +101,8 @@ fun SendWishScreen(
     currentDate: String,
     key: String,
     holidayName: String,
-    generateImageState: UiState<String>,
+    sendWishState: SendWishUiState,
     onGenerateImage: (prompt: String, model: String) -> Unit,
-    modelsState: UiState<List<String>>,
-    sendWishState: UiState<Unit>,
     onSendWish: (
         text: String,
         wishDate: String,
@@ -109,12 +112,27 @@ fun SendWishScreen(
         isBlurred: Boolean,
         cost: Int
     ) -> Unit,
-    uploadImageState: UiState<String>,
     onUploadImage: (imageUri: Uri) -> Unit,
     onNavigateToHomeScreen: () -> Unit,
-    onBackSendState: () -> Unit
+    onBackSendState: () -> Unit,
+    onGenerateTextWishPrompt: (holidayName: String) -> Unit,
+    onImprovePrompt: (wishText: String) -> Unit
 ) {
     var wishText by remember { mutableStateOf("") }
+
+    LaunchedEffect(holidayName) {
+        if (holidayName.isNotEmpty()) {
+            onGenerateTextWishPrompt(holidayName)
+        }
+    }
+
+    LaunchedEffect(sendWishState.generateTextState) {
+        val state = sendWishState.generateTextState
+        if (state is UiState.Success) {
+            wishText = state.data
+        }
+    }
+
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var isBlurred by remember { mutableStateOf(false) }
@@ -132,65 +150,12 @@ fun SendWishScreen(
     val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMMM", Locale("ru")) }
     val formattedDate = parsedDate.format(dateFormatter)
 
-    val clipboardManager = LocalClipboardManager.current
-    val context = LocalContext.current
-
-    when (sendWishState) {
+    when (sendWishState.sendWishState) {
         is UiState.Success -> {
-            Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    "Поздравление успешно отправлено!",
-                    style = MaterialTheme.typography.headlineSmall,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Скопируйте ключ и поделитесь им, чтобы другие смогли увидеть ваше поздравление.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            key,
-                            style = MaterialTheme.typography.titleMedium,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                            modifier = Modifier.weight(1f)
-                        )
-                        IconButton(onClick = {
-                            clipboardManager.setText(AnnotatedString(key))
-                            Toast.makeText(context, "Ключ скопирован", Toast.LENGTH_SHORT).show()
-                        }) {
-                            Icon(painter = painterResource(R.drawable.baseline_content_copy_24), contentDescription = "Скопировать")
-                        }
-                        ShareKeyButton(key)
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(onClick = onNavigateToHomeScreen, modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)) {
-                    Text("На главную")
-                }
-            }
+            SuccessSendWishContent(
+                modifier = modifier,
+                key, onNavigateToHomeScreen
+            )
         }
 
         is UiState.Loading -> {
@@ -200,12 +165,12 @@ fun SendWishScreen(
         is UiState.Error -> {
             Column {
                 ErrorScreen(
-                    errorMessage = sendWishState.message,
+                    errorMessage = sendWishState.sendWishState.message,
                     onButtonClick = {
                         val maxViewersInt = maxViews.toIntOrNull()
                         val imageToSend = when (selectedTabIndex) {
-                            0 -> if (uploadImageState is UiState.Success) uploadImageState.data else null
-                            1 -> if (generateImageState is UiState.Success) generateImageState.data else null
+                            0 -> if (sendWishState.uploadImageState is UiState.Success) sendWishState.uploadImageState.data else null
+                            1 -> if (sendWishState.generateImageState is UiState.Success) sendWishState.generateImageState.data else null
                             else -> null
                         }
                         if (imageToSend != null) {
@@ -224,7 +189,9 @@ fun SendWishScreen(
                 )
                 Button(
                     onClick = onBackSendState,
-                    modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
                 ) {
                     Text("Назад")
                 }
@@ -242,7 +209,7 @@ fun SendWishScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 WishText(wishText, onWishTextChange = {
                     wishText = it
-                })
+                }, sendWishState, onImprovePrompt = { onImprovePrompt(wishText) })
                 Spacer(modifier = Modifier.height(12.dp))
                 Text("Изображение", style = MaterialTheme.typography.headlineMedium)
                 Spacer(modifier = Modifier.height(12.dp))
@@ -251,34 +218,38 @@ fun SendWishScreen(
                 })
                 Spacer(modifier = Modifier.height(12.dp))
                 val imageToSend = when (selectedTabIndex) {
-                    0 -> if (uploadImageState is UiState.Success) uploadImageState.data else null
-                    1 -> if (generateImageState is UiState.Success) generateImageState.data else null
+                    0 -> if (sendWishState.uploadImageState is UiState.Success) sendWishState.uploadImageState.data else null
+                    1 -> if (sendWishState.generateImageState is UiState.Success) sendWishState.generateImageState.data else null
                     else -> null
                 }
                 when (selectedTabIndex) {
                     0 -> {
                         ImageFromGallery(
                             selectedImageUri = selectedImageUri,
-                            onSelectedImageUriChange = {
-                                selectedImageUri = it
+                            onSelectedImageUriChange = { uri ->
+                                selectedImageUri = uri
+                                uri?.let { onUploadImage(it) }
                             },
                             isBlurred = isBlurred,
-                            uploadImageState = uploadImageState,
-                            onUploadImage = onUploadImage
+                            uploadImageState = sendWishState.uploadImageState,
+                            onUploadImage = { uri ->
+                                onUploadImage(uri)
+                            }
                         )
                     }
 
                     1 -> {
                         GeneratedImage(
-                            generateImageState,
+                            sendWishState.generateImageState,
                             onGenerateImage,
                             wishText,
-                            modelsState,
+                            sendWishState.modelsListState,
                             isBlurred = isBlurred
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.weight(1f))
                 AdditionalSettings(
                     expanded = additionalSettingsExpanded,
                     onExpand = { additionalSettingsExpanded = !additionalSettingsExpanded },
@@ -318,6 +289,79 @@ fun SendWishScreen(
                     }
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun SuccessSendWishContent(
+    modifier: Modifier,
+    key: String,
+    onNavigateToHomeScreen: () -> Unit,
+) {
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            "Пожелание успешно отправлено!",
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            "Скопируйте ключ и поделитесь им, чтобы другие смогли увидеть ваше поздравление.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .padding(start = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    key,
+                    style = MaterialTheme.typography.titleMedium,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = {
+                    clipboardManager.setText(AnnotatedString(key))
+                    Toast.makeText(context, "Ключ скопирован", Toast.LENGTH_SHORT).show()
+                }) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_content_copy_24),
+                        contentDescription = "Скопировать"
+                    )
+                }
+                ShareKeyButton(key)
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(
+            onClick = onNavigateToHomeScreen,
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
+        ) {
+            Text("На главную")
         }
     }
 }
@@ -558,6 +602,7 @@ fun AdditionalSettings(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GeneratedImage(
     generateImageState: UiState<String>,
@@ -592,55 +637,57 @@ fun GeneratedImage(
                     ErrorScreen(errorMessage = modelsState.message)
                 }
 
-                UiState.Idle -> {}
-                UiState.Loading -> {
+                is UiState.Idle -> {}
+                is UiState.Loading -> {
                     LoadingScreen()
                 }
 
                 is UiState.Success -> {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        modelsState.data.chunked(4).forEach { rowModels ->
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                    FlowRow(
+                        maxItemsInEachRow = 4,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            8.dp,
+                            Alignment.CenterHorizontally
+                        ),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        modelsState.data.forEach { modelName ->
+                            val randomColor = remember {
+                                Color(
+                                    Random.nextInt(150, 220),
+                                    Random.nextInt(150, 220),
+                                    Random.nextInt(150, 220),
+                                    255
+                                )
+                            }
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(randomColor)
+                                    .size(80.dp)
+                                    .aspectRatio(1f)
+                                    .clickable {
+                                        selectedModel = modelName
+                                    }
+                                    .then(
+                                        if (selectedModel == modelName) {
+                                            Modifier.border(2.dp, Color.Green, CircleShape)
+                                        } else {
+                                            Modifier
+                                        }
+                                    )
                             ) {
-                                rowModels.forEach { modelName ->
-                                    val randomColor = remember {
-                                        Color(
-                                            Random.nextInt(150, 220),
-                                            Random.nextInt(150, 220),
-                                            Random.nextInt(150, 220),
-                                            255
-                                        )
-                                    }
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier
-                                            .clip(CircleShape)
-                                            .background(randomColor)
-                                            .weight(1f)
-                                            .aspectRatio(1f)
-                                            .clickable {
-                                                selectedModel = modelName
-                                            }
-                                            .then(
-                                                if (selectedModel == modelName) {
-                                                    Modifier.border(2.dp, Color.Green, CircleShape)
-                                                } else {
-                                                    Modifier
-                                                }
-                                            )
-                                    ) {
-                                        Text(
-                                            modelName,
-                                            color = Color.Black,
-                                            textAlign = TextAlign.Center,
-                                            style = MaterialTheme.typography.displayLarge.copy(
-                                                fontSize = 12.sp
-                                            )
-                                        )
-                                    }
-                                }
+                                Text(
+                                    modelName,
+                                    color = Color.Black,
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.displayLarge.copy(
+                                        fontSize = 12.sp
+                                    ),
+                                    modifier = Modifier.padding(start = 2.dp, end = 2.dp)
+                                )
                             }
                         }
                     }
@@ -648,7 +695,7 @@ fun GeneratedImage(
             }
             Spacer(modifier = Modifier.height(8.dp))
             when (generateImageState) {
-                UiState.Idle -> {
+                is UiState.Idle -> {
                     Button(
                         onClick = {
                             selectedModel?.let { model ->
@@ -675,7 +722,7 @@ fun GeneratedImage(
                         })
                 }
 
-                UiState.Loading -> {
+                is UiState.Loading -> {
 
                     Card(
                         shape = RoundedCornerShape(32.dp),
@@ -696,14 +743,27 @@ fun GeneratedImage(
                         shape = RoundedCornerShape(32.dp),
                         modifier = Modifier.animateContentSize()
                     ) {
-                        AsyncImage(
+                        SubcomposeAsyncImage(
                             model = generateImageState.data,
                             contentDescription = "Сгенерированное изображение",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .aspectRatio(1f)
                                 .then(if (isBlurred) Modifier.blur(32.dp) else Modifier),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            loading = {
+                                Card(
+                                    modifier = Modifier.aspectRatio(1f)
+                                ) {
+                                    LoadingScreen(text = "Успешно сгенерировано! Загружаем..")
+                                }
+                            },
+                            error = {
+                                ErrorScreen(
+                                    errorMessage = "Ошибка загрузки изображения",
+                                    modifier = Modifier.aspectRatio(1f)
+                                )
+                            }
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -736,8 +796,8 @@ fun ImageFromGallery(
     val galleryLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             onSelectedImageUriChange(uri)
-            uri?.let { onUploadImage(it) }
         }
+
     if (selectedImageUri != null) {
         Card(
             colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.7f)),
@@ -749,9 +809,11 @@ fun ImageFromGallery(
             ),
             modifier = Modifier.animateContentSize()
         ) {
-            Column(modifier = Modifier
-                .animateContentSize()
-                .padding(8.dp)) {
+            Column(
+                modifier = Modifier
+                    .animateContentSize()
+                    .padding(8.dp)
+            ) {
                 Card(shape = RoundedCornerShape(48.dp)) {
                     AsyncImage(
                         model = selectedImageUri,
@@ -784,15 +846,16 @@ fun ImageFromGallery(
                     Spacer(modifier = Modifier.height(8.dp))
                     ErrorScreen(
                         errorMessage = uploadImageState.message,
-                        buttonMessage = "Попробовать еще раз"
-                    ) {
-                        onUploadImage(selectedImageUri)
-                    }
+                        buttonMessage = "Попробовать еще раз",
+                        onButtonClick = {
+                            onUploadImage(selectedImageUri)
+                        }
+                    )
                 }
             }
         }
     } else {
-        ElevatedButton(
+        Button(
             onClick = {
                 galleryLauncher.launch("image/*")
             }, modifier = Modifier
@@ -808,10 +871,11 @@ fun ImageFromGallery(
         } else if (uploadImageState is UiState.Error) {
             ErrorScreen(
                 errorMessage = uploadImageState.message,
-                buttonMessage = "Попробовать еще раз"
-            ) {
-                galleryLauncher.launch("image/*")
-            }
+                buttonMessage = "Попробовать еще раз",
+                onButtonClick = {
+                    galleryLauncher.launch("image/*")
+                }
+            )
         }
     }
 }
@@ -844,11 +908,44 @@ fun TabsSelect(
 fun WishText(
     wishText: String,
     onWishTextChange: (String) -> Unit,
+    sendWishState: SendWishUiState,
+    onImprovePrompt: () -> Unit
 ) {
-    val maxWishTextLength = 200
+    when (sendWishState.generateTextState) {
+
+        is UiState.Loading -> {
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                LoadingScreen(
+                    text = "Генерируем текст поздравления..",
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+
+        else -> {
+            WishTextContent(
+                wishText,
+                onWishTextChange,
+                improveWishPrompt = onImprovePrompt
+            )
+        }
+    }
+}
+
+@Composable
+fun WishTextContent(
+    wishText: String,
+    onWishTextChange: (String) -> Unit,
+    improveWishPrompt:()-> Unit
+) {
+    val maxWishTextLength = 300
     Box(
-        contentAlignment = Alignment.BottomEnd,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxSize().background(
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+            shape = OutlinedTextFieldDefaults.shape
+        ),
     ) {
         OutlinedTextField(
             value = wishText,
@@ -858,7 +955,7 @@ fun WishText(
                 }
             },
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth().animateContentSize().padding(end = 75.dp)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                     shape = OutlinedTextFieldDefaults.shape
@@ -870,19 +967,31 @@ fun WishText(
             ),
             maxLines = 10
         )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, end = 20.dp),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            Text(
-                text = "${wishText.length}/$maxWishTextLength",
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        AnimatedVisibility(wishText.length > 10, enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
+            Box(
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.End
-            )
+                contentAlignment = Alignment.TopEnd
+            ) {
+                IconButton(
+                    onClick = {
+                        improveWishPrompt()
+                    },
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.update_icon),
+                        contentDescription = "update",
+                        modifier = Modifier.padding(end = 16.dp).size(20.dp),
+                        tint = Color.Black.copy(alpha = 0.7f)
+                    )
+                }
+            }
         }
+        Text(
+            text = "${wishText.length}/$maxWishTextLength",
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            modifier = Modifier.fillMaxSize().align(Alignment.BottomEnd).padding(top = 8.dp, end = 8.dp),
+            textAlign = TextAlign.End
+        )
     }
 }
 
@@ -902,29 +1011,17 @@ fun PreviewSendWishDataScreen() {
             holidayDate = "2024-12-31",
             key = "testkey",
             holidayName = "Chistmas",
-            generateImageState = UiState.Idle,
+            sendWishState = SendWishUiState(),
             onGenerateImage = { _, _ -> },
             currentDate = "2023-10-27",
-            modelsState = UiState.Success(
-                listOf(
-                    "model1",
-                    "model2",
-                    "model3",
-                    "model4",
-                    "model5",
-                    "model6",
-                    "model7",
-                    "model8"
-                )
-            ),
             onSendWish = { _, _, _, _, _, _, _ ->
 
             },
-            sendWishState = UiState.Idle,
-            uploadImageState = UiState.Idle,
             onUploadImage = {},
             onNavigateToHomeScreen = {},
-            onBackSendState = {}
+            onBackSendState = {},
+            onGenerateTextWishPrompt = {},
+            onImprovePrompt = {}
         )
     }
 }

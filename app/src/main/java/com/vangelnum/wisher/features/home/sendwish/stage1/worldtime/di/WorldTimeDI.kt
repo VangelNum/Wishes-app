@@ -8,8 +8,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -18,18 +16,8 @@ object WorldTimeDI {
 
     @Provides
     @Singleton
-    @Named("WorldTimeApi")
-    fun provideWorldTimeRetrofit(): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl("https://tools.aimylogic.com/api/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-    @Provides
-    @Singleton
     fun provideWorldTimeApi(
-        @Named("WorldTimeApi") retrofit: Retrofit
+        retrofit: Retrofit
     ): WorldTimeApi {
         return retrofit.create(WorldTimeApi::class.java)
     }

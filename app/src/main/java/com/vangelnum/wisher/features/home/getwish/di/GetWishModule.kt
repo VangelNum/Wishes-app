@@ -12,15 +12,16 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object  GetWishModule {
+object GetWishModule {
     @Provides
     @Singleton
     fun provideGetWishApi(retrofit: Retrofit): GetWishApi {
         return retrofit.create(GetWishApi::class.java)
     }
+
     @Provides
     @Singleton
-    fun provideGetWishRepository(api: GetWishApi) : GetWishRepository {
+    fun provideGetWishRepository(api: GetWishApi): GetWishRepository {
         return GetWishRepositoryImpl(api)
     }
 }

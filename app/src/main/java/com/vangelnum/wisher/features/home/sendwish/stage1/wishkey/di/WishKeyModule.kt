@@ -1,6 +1,6 @@
 package com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.di
 
-import com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.data.api.WishKeyService
+import com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.data.api.WishKeyApi
 import com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.data.repository.WishKeyKeyRepositoryImpl
 import com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.domain.repository.WishKeyRepository
 import dagger.Module
@@ -15,13 +15,13 @@ import javax.inject.Singleton
 object WishKeyModule {
     @Provides
     @Singleton
-    fun provideWishKeyApi(retrofit: Retrofit): WishKeyService {
-        return retrofit.create(WishKeyService::class.java)
+    fun provideWishKeyApi(retrofit: Retrofit): WishKeyApi {
+        return retrofit.create(WishKeyApi::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideWishKeyRepository(wishKeyService: WishKeyService): WishKeyRepository {
-        return WishKeyKeyRepositoryImpl(wishKeyService)
+    fun provideWishKeyRepository(wishKeyApi: WishKeyApi): WishKeyRepository {
+        return WishKeyKeyRepositoryImpl(wishKeyApi)
     }
 }

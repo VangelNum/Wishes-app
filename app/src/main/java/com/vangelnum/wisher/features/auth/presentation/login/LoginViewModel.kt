@@ -13,8 +13,11 @@ import com.vangelnum.wisher.features.auth.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +28,7 @@ class LoginViewModel @Inject constructor(
 
     private val authorizationHeaderKey = stringPreferencesKey("authorization_header")
 
-    private val _loginUiState = MutableStateFlow<UiState<AuthResponse>>(UiState.Loading)
+    private val _loginUiState = MutableStateFlow<UiState<AuthResponse>>(UiState.Idle())
     val loginUiState = _loginUiState.asStateFlow()
 
     init {
@@ -43,7 +46,7 @@ class LoginViewModel @Inject constructor(
             }
 
             LoginEvent.OnExit -> {
-                _loginUiState.value = UiState.Idle
+                _loginUiState.value = UiState.Idle()
                 viewModelScope.launch {
                     clearAuthorizationHeader()
                 }
@@ -58,30 +61,40 @@ class LoginViewModel @Inject constructor(
     }
 
     private suspend fun attemptAutoLogin() {
-        val storedHeader = dataStore.data.first()[authorizationHeaderKey]
-        if (storedHeader != null) {
-            userRepository.getUserInfo(storedHeader).onSuccess {
-                _loginUiState.value = UiState.Success(it)
-            }.onFailure {
-                _loginUiState.value = UiState.Idle
-            }
-        } else {
-            _loginUiState.value = UiState.Idle
+        dataStore.data.first()[authorizationHeaderKey]?.let { storedHeader ->
+            userRepository.getUserInfo(storedHeader)
+                .onStart { _loginUiState.value = UiState.Loading() }
+                .catch {
+                    _loginUiState.value =
+                        UiState.Error(it.localizedMessage ?: "An unexpected error occurred")
+                }
+                .collect {
+                    _loginUiState.value = UiState.Success(it)
+                }
+        } ?: run {
+            _loginUiState.value = UiState.Idle()
         }
     }
 
     private fun getUserInfo(email: String, password: String) {
-        _loginUiState.value = UiState.Loading
+        val credentials = "${email}:${password}"
+        val base64Credentials = Base64.encodeToString(credentials.toByteArray(), Base64.NO_WRAP)
+        val authorizationHeader = "Basic $base64Credentials"
+
         viewModelScope.launch {
-            val credentials = "${email}:${password}"
-            val base64Credentials = Base64.encodeToString(credentials.toByteArray(), Base64.NO_WRAP)
-            val authorizationHeader = "Basic $base64Credentials"
-            userRepository.getUserInfo(authorizationHeader).onSuccess {
-                _loginUiState.value = UiState.Success(it)
-                saveAuthorizationHeader(authorizationHeader)
-            }.onFailure {
-                _loginUiState.value = UiState.Error(it.localizedMessage ?: "An unexpected error occurred")
-            }
+            userRepository.getUserInfo(authorizationHeader)
+                .onStart { _loginUiState.value = UiState.Loading() }
+                .catch { error ->
+                    if (error is HttpException && error.code() == 401) {
+                        _loginUiState.value = UiState.Error("Неверные учетные данные ${error.message()}")
+                    } else {
+                        _loginUiState.value = UiState.Error(error.localizedMessage ?: "An unexpected error occurred")
+                    }
+                }
+                .collect { authResponse ->
+                    _loginUiState.value = UiState.Success(authResponse)
+                    saveAuthorizationHeader(authorizationHeader)
+                }
         }
     }
 
@@ -98,6 +111,6 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun backToEmptyState() {
-        _loginUiState.value = UiState.Idle
+        _loginUiState.value = UiState.Idle()
     }
 }

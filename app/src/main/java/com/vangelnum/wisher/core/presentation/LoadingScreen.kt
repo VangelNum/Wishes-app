@@ -25,7 +25,6 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 
-
 private const val PADDING_PERCENTAGE_OUTER_CIRCLE = 0.15f
 private const val PADDING_PERCENTAGE_INNER_CIRCLE = 0.3f
 private const val POSITION_START_OFFSET_OUTER_CIRCLE = 90f
@@ -62,7 +61,7 @@ fun LoadingScreen(modifier: Modifier = Modifier, text: String? = null) {
                 CircularProgressIndicator(
                     strokeWidth = 1.dp,
                     modifier = Modifier
-                        .fillMaxSize()
+                        .size(40.dp)
                         .graphicsLayer {
                             rotationZ = rotation
                         }

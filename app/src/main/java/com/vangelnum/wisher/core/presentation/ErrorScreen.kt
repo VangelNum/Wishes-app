@@ -22,12 +22,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ErrorScreen(
     modifier: Modifier = Modifier,
-    errorMessage: String,
+    errorMessage: String? = null,
     buttonMessage: String? = null,
     onButtonClick: (() -> Unit)? = null,
-    content: (@Composable () -> Unit)? = null
+    content: (@Composable () -> Unit)? = null,
+    contentAlignment: Alignment = Alignment.TopCenter
 ) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(modifier = modifier, contentAlignment = contentAlignment) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
@@ -35,25 +36,30 @@ fun ErrorScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            OutlinedCard(
-                colors = CardDefaults.outlinedCardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    errorMessage,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally)
-                        .padding(16.dp)
-                )
+            if (errorMessage != null) {
+                OutlinedCard(
+                    colors = CardDefaults.outlinedCardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        errorMessage,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.CenterHorizontally)
+                            .padding(16.dp)
+                    )
+
+                }
             }
             if (buttonMessage != null && onButtonClick != null) {
                 Button(
                     onClick = onButtonClick,
-                    modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
                 ) {
                     Text(buttonMessage)
                 }
