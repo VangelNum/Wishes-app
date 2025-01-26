@@ -80,8 +80,9 @@ import androidx.compose.ui.unit.dp
 import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.SmallLoadingIndicator
+import com.vangelnum.wisher.features.home.getwish.data.model.Wish
 import com.vangelnum.wisher.features.home.getwish.data.model.WishDatesInfo
-import com.vangelnum.wisher.features.home.getwish.data.model.WishResponse
+import com.vangelnum.wisher.features.home.getwish.presentation.GetWishEvent
 import com.vangelnum.wisher.features.home.getwish.presentation.GetWishScreen
 import com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.data.model.WishKey
 import com.vangelnum.wisher.features.home.sendwish.stage1.worldtime.data.model.DateInfo
@@ -102,12 +103,11 @@ fun HomeScreen(
     onGetWishKey: () -> Unit,
     onGetTime: () -> Unit,
     onNavigateHolidaysScreen: (String, String, String) -> Unit,
-    onGetWishesDates: (key: String) -> Unit,
     wishesDatesState: UiState<List<WishDatesInfo>>,
     showSnackbar: (String) -> Unit,
-    wishState: UiState<WishResponse>,
-    onOpenWish: (key: String, id: Int) -> Unit,
-    onRegenerateKey: () -> Unit
+    wishState: UiState<Wish>,
+    onRegenerateKey: () -> Unit,
+    onEvent: (GetWishEvent) -> Unit
 ) {
     LaunchedEffect(true) {
         onGetWishKey()
@@ -232,7 +232,7 @@ fun HomeScreen(
                                             showRegenerateConfirmationDialog = true
                                         }) {
                                             Icon(
-                                                painter = painterResource(R.drawable.update_icon),
+                                                painter = painterResource(R.drawable.baseline_cached_24),
                                                 contentDescription = "Change key"
                                             )
                                         }
@@ -376,13 +376,12 @@ fun HomeScreen(
         } else {
             GetWishScreen(
                 wishesDateState = wishesDatesState,
-                onGetWishesDates = onGetWishesDates,
                 modifier = Modifier,
                 currentDateState = currentDateUiState,
                 showSnackbar = showSnackbar,
                 wishState = wishState,
-                onOpenWish = onOpenWish,
-                wishKey = wishKey
+                wishKey = wishKey,
+                onEvent = onEvent
             )
         }
     }
@@ -553,13 +552,10 @@ fun PreviewHomeScreen() {
 
             },
             wishesDatesState = UiState.Idle(),
-            onGetWishesDates = {
-
-            },
             showSnackbar = {},
-            onOpenWish = { _, _ -> },
             wishState = UiState.Idle(),
-            onRegenerateKey = {}
+            onRegenerateKey = {},
+            onEvent = {}
         )
     }
 }

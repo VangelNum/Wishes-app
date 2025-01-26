@@ -72,8 +72,9 @@ class SendWishRepositoryImpl @Inject constructor(
         model: String?,
         languageCode: String?
     ): String {
+        val seed = Random.nextInt(0, maxSeedValue + 1)
         val improvedWishPrompt = "Improve this prompt: $prompt. Your improved prompt should be written in languageCode = $languageCode. Keep it concise, under 200 characters."
-        return generationTextApi.generateText(improvedWishPrompt, model)
+        return generationTextApi.generateText(improvedWishPrompt, model, seed = seed)
     }
 
     override fun getImageModels(): Flow<UiState<List<String>>> = flow {

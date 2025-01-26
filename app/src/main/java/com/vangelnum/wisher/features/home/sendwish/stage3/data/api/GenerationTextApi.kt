@@ -9,6 +9,7 @@ interface GenerationTextApi {
     suspend fun generateText(
         @Path("prompt") prompt: String,
         @Query("model") model: String?,
+        @Query("seed") seed: Int? = 0,
         @Query("json") json: Boolean? = false
     ): String
 }

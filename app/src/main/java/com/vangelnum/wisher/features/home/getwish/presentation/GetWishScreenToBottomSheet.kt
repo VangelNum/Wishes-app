@@ -36,12 +36,12 @@ import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.ErrorScreen
 import com.vangelnum.wisher.core.presentation.LoadingScreen
 import com.vangelnum.wisher.features.home.User
-import com.vangelnum.wisher.features.home.getwish.data.model.WishResponse
+import com.vangelnum.wisher.features.home.getwish.data.model.Wish
 import kotlinx.coroutines.delay
 
 @Composable
 fun GetWishScreenToBottomSheet(
-    state: UiState<WishResponse>,
+    state: UiState<Wish>,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -55,7 +55,7 @@ fun GetWishScreenToBottomSheet(
             is UiState.Idle -> {}
 
             is UiState.Loading -> {
-                LoadingScreen(text = "Загружаем поздравление..")
+                LoadingScreen(loadingText = "Загружаем поздравление..")
             }
 
             is UiState.Success -> {
@@ -66,7 +66,7 @@ fun GetWishScreenToBottomSheet(
 }
 
 @Composable
-fun WishContent(wish: WishResponse) {
+fun WishContent(wish: Wish) {
 
     Column(modifier = Modifier.padding(16.dp)) {
         ElevatedCard(
@@ -157,7 +157,7 @@ fun AnimatedText(
 fun GetWishScreenToBottomSheetPreview() {
     GetWishScreenToBottomSheet(
         state = UiState.Success(
-            WishResponse(
+            Wish(
                 id = 1,
                 user = User(
                     id = 1,
@@ -166,7 +166,9 @@ fun GetWishScreenToBottomSheetPreview() {
                     email = "vangel@mail.ru",
                     role = "",
                     coins = 100,
-                    password = ""
+                    password = "",
+                    isEmailVerified = true,
+                    verificationCode = null
                 ),
                 text = "Happy birthday",
                 image = "",

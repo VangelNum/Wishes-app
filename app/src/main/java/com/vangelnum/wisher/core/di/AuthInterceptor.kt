@@ -24,7 +24,11 @@ class AuthInterceptor @Inject constructor(
 
         val requestBuilder = originalRequest.newBuilder()
             .apply {
-                if (!originalRequest.url.toString().endsWith("/api/v1/user/register") && !originalRequest.url.toString().endsWith("/api/v1/user/me")) {
+                if (!originalRequest.url.toString().endsWith("/api/v1/user/register") &&
+                    !originalRequest.url.toString().endsWith("/api/v1/user/verify-email") &&
+                    !originalRequest.url.toString().endsWith("/api/v1/user/verify-resend-verification-code") &&
+                    !originalRequest.url.toString().endsWith("/api/v1/user/me")
+                ) {
                     authorizationHeader?.let { header ->
                         header("Authorization", header)
                     }

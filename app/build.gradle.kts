@@ -62,10 +62,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation (libs.retrofit)
+    implementation(libs.retrofit)
     implementation(libs.logging.interceptor)
-    implementation (libs.converter.gson)
-    implementation (libs.converter.scalars)
+    implementation(libs.converter.gson)
+    implementation(libs.converter.scalars)
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
@@ -83,7 +83,7 @@ dependencies {
     implementation(libs.coil.compose)
 
     implementation(libs.jsoup)
-    implementation (libs.translate)
-    implementation (libs.language.id)
+    implementation(libs.translate)
+    implementation(libs.language.id)
     implementation(libs.kotlinx.coroutines.play.services)
 }

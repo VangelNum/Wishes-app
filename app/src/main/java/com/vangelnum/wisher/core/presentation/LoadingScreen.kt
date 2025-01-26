@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 private const val PADDING_PERCENTAGE_OUTER_CIRCLE = 0.15f
@@ -31,7 +32,12 @@ private const val POSITION_START_OFFSET_OUTER_CIRCLE = 90f
 private const val POSITION_START_OFFSET_INNER_CIRCLE = 135f
 
 @Composable
-fun LoadingScreen(modifier: Modifier = Modifier, text: String? = null) {
+fun LoadingScreen(
+    loadingText: String? = null,
+    contentAlignment: Alignment = Alignment.Center,
+    textAlign: TextAlign = TextAlign.Center,
+    modifier: Modifier = Modifier
+) {
     val infiniteTransition = rememberInfiniteTransition(label = "infinity_loading_animation")
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -45,7 +51,7 @@ fun LoadingScreen(modifier: Modifier = Modifier, text: String? = null) {
         mutableIntStateOf(0)
     }
 
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = contentAlignment) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -93,8 +99,8 @@ fun LoadingScreen(modifier: Modifier = Modifier, text: String? = null) {
                         }
                 )
             }
-            if (text != null) {
-                Text(text)
+            if (loadingText != null) {
+                Text(loadingText, textAlign = textAlign)
             }
         }
     }

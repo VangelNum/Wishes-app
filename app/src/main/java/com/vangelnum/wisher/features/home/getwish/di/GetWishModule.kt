@@ -1,5 +1,6 @@
 package com.vangelnum.wisher.features.home.getwish.di
 
+import com.vangelnum.wisher.core.utils.ErrorParser
 import com.vangelnum.wisher.features.home.getwish.data.api.GetWishApi
 import com.vangelnum.wisher.features.home.getwish.data.repository.GetWishRepositoryImpl
 import com.vangelnum.wisher.features.home.getwish.domain.repository.GetWishRepository
@@ -21,7 +22,7 @@ object GetWishModule {
 
     @Provides
     @Singleton
-    fun provideGetWishRepository(api: GetWishApi): GetWishRepository {
-        return GetWishRepositoryImpl(api)
+    fun provideGetWishRepository(api: GetWishApi, errorParser: ErrorParser): GetWishRepository {
+        return GetWishRepositoryImpl(api, errorParser)
     }
 }

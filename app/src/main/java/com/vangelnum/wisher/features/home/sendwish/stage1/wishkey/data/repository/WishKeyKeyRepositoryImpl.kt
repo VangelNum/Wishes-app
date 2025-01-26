@@ -16,8 +16,8 @@ class WishKeyKeyRepositoryImpl @Inject constructor(
         emit(UiState.Loading())
         try {
             val response = api.getWishKey()
-            if (response != null) {
-                emit(UiState.Success(response))
+            if (response.isSuccessful && response.body() != null) {
+                emit(UiState.Success(response.body()!!))
             } else {
                 val generatedKey = api.generateWishKey()
                 emit(UiState.Success(generatedKey))

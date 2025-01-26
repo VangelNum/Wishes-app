@@ -16,7 +16,6 @@ object HomePage
 
 @Serializable
 data class UploadAvatarPage(
-    val name: String,
     val email: String,
     val password: String
 )
@@ -29,9 +28,21 @@ data class HolidaysPage(
 )
 
 @Serializable
+data class VerifyEmailPage(
+    val email: String,
+    val password: String,
+)
+
+@Serializable
 data class SendWishPage(
     val holidayDate: String,
     val currentDate: String,
     val key: String,
     val holidayName: String
 )
+
+@Serializable
+object UserWishesHistoryPage
+
+@Serializable
+data class ViewHistoryPage(val wishId: Int)

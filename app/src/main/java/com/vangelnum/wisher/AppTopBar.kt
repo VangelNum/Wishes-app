@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.vangelnum.wisher.core.data.UiState
-import com.vangelnum.wisher.features.auth.data.model.AuthResponse
+import com.vangelnum.wisher.features.auth.core.model.AuthResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -33,7 +33,6 @@ import kotlinx.coroutines.launch
 fun AppTopBar(
     modifier: Modifier = Modifier,
     loginState: UiState<AuthResponse>,
-    registrationState: UiState<AuthResponse>,
     onBack: () -> Unit,
     showMenuIcon: Boolean,
     scope: CoroutineScope,
@@ -47,7 +46,6 @@ fun AppTopBar(
         actions = {
             val coins = when {
                 loginState is UiState.Success -> loginState.data.coins
-                registrationState is UiState.Success -> registrationState.data.coins
                 else -> null
             }
             coins?.let {

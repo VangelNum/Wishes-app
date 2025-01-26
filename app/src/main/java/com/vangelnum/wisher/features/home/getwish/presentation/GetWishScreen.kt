@@ -1,5 +1,6 @@
 package com.vangelnum.wisher.features.home.getwish.presentation
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomSheetScaffold
@@ -27,6 +29,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -43,16 +46,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.ErrorScreen
 import com.vangelnum.wisher.core.presentation.LoadingScreen
 import com.vangelnum.wisher.features.home.generateLightColor
+import com.vangelnum.wisher.features.home.getwish.data.model.Wish
 import com.vangelnum.wisher.features.home.getwish.data.model.WishDatesInfo
-import com.vangelnum.wisher.features.home.getwish.data.model.WishResponse
 import com.vangelnum.wisher.features.home.sendwish.stage1.worldtime.data.model.DateInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -67,12 +72,11 @@ import java.util.Locale
 fun GetWishScreen(
     modifier: Modifier = Modifier,
     wishesDateState: UiState<List<WishDatesInfo>>,
-    onGetWishesDates: (String) -> Unit,
     currentDateState: UiState<DateInfo>,
     showSnackbar: (String) -> Unit,
-    wishState: UiState<WishResponse>,
-    onOpenWish: (key: String, id: Int) -> Unit,
-    wishKey: MutableState<String>
+    wishState: UiState<Wish>,
+    wishKey: MutableState<String>,
+    onEvent:(event: GetWishEvent) -> Unit
 ) {
     var selectedWishId by remember { mutableStateOf<Int?>(null) }
     var bottomSheetVisible by remember { mutableStateOf(false) }
@@ -81,7 +85,7 @@ fun GetWishScreen(
     LaunchedEffect(wishKey.value) {
         if (wishKey.value.isNotBlank()) {
             delay(500L)
-            onGetWishesDates(wishKey.value)
+            onEvent(GetWishEvent.OnGetWishesDates(wishKey.value))
         }
     }
 
@@ -109,7 +113,7 @@ fun GetWishScreen(
             ) {
                 if (bottomSheetVisible && selectedWishId != null && wishKey.value.isNotBlank()) {
                     LaunchedEffect(selectedWishId) {
-                        onOpenWish(wishKey.value, selectedWishId!!)
+                        onEvent(GetWishEvent.OnGetWishes(wishKey.value, selectedWishId!!))
                     }
                     GetWishScreenToBottomSheet(
                         state = wishState
@@ -128,7 +132,7 @@ fun GetWishScreen(
             }
             when (wishesDateState) {
                 is UiState.Loading -> {
-                    LoadingScreen()
+                    LoadingScreen(loadingText = "Загружаем даты", contentAlignment = Alignment.TopCenter, modifier = Modifier.padding(top = 16.dp))
                 }
 
                 is UiState.Success -> {
@@ -145,7 +149,14 @@ fun GetWishScreen(
 
                 is UiState.Error -> {
                     ErrorScreen(
-                        errorMessage = wishesDateState.message
+                        errorMessage = wishesDateState.message,
+                        content = {
+                            Image(
+                                painter = painterResource(R.drawable.emptystate),
+                                contentDescription = "Key not found"
+                            )
+                        },
+                        contentAlignment = Alignment.Center
                     )
                 }
 
@@ -169,14 +180,19 @@ fun WishDatesContent(
     val scope = rememberCoroutineScope()
     Column {
         if (wishesDateState.data.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                verticalArrangement = Arrangement.spacedBy(32.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()
             ) {
                 Text(
-                    text = "Нет поздравлений",
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = "Нет пожеланий",
+                    style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                )
+                Image(
+                    painter = painterResource(R.drawable.emptystate),
+                    contentDescription = "Empty wish list"
                 )
             }
         } else {
@@ -317,6 +333,17 @@ fun WishKeyTextField(wishKey: String, onWishKeyChange: (String) -> Unit) {
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
+        trailingIcon = {
+            if (wishKey.isNotBlank()) {
+                IconButton(
+                    onClick = {
+                        onWishKeyChange("")
+                    }
+                ) {
+                    Icon(imageVector = Icons.Filled.Close, contentDescription = "clear text")
+                }
+            }
+        },
         singleLine = true,
         shape = CircleShape
     )
@@ -359,7 +386,6 @@ fun PreviewGetWishScreen() {
                     )
                 )
             ),
-            onGetWishesDates = {},
             currentDateState = UiState.Success(
                 DateInfo(
                     day = 16,
@@ -374,9 +400,9 @@ fun PreviewGetWishScreen() {
                 )
             ),
             showSnackbar = {},
-            onOpenWish = { _, _ -> },
             wishState = UiState.Idle(),
-            wishKey = wishKey
+            wishKey = wishKey,
+            onEvent = {}
         )
     }
 }
@@ -390,7 +416,6 @@ fun PreviewEmptyGetWishScreen() {
     MaterialTheme {
         GetWishScreen(
             wishesDateState = UiState.Success(emptyList()),
-            onGetWishesDates = {},
             currentDateState = UiState.Success(
                 DateInfo(
                     day = 16,
@@ -405,9 +430,9 @@ fun PreviewEmptyGetWishScreen() {
                 )
             ),
             showSnackbar = {},
-            onOpenWish = { _, _ -> },
             wishState = UiState.Idle(),
-            wishKey = wishKey
+            wishKey = wishKey,
+            onEvent = {}
         )
     }
 }
@@ -421,7 +446,6 @@ fun PreviewLoadingGetWishScreen() {
     MaterialTheme {
         GetWishScreen(
             wishesDateState = UiState.Loading(),
-            onGetWishesDates = {},
             currentDateState = UiState.Success(
                 DateInfo(
                     day = 16,
@@ -436,9 +460,9 @@ fun PreviewLoadingGetWishScreen() {
                 )
             ),
             showSnackbar = {},
-            onOpenWish = { _, _ -> },
             wishState = UiState.Idle(),
-            wishKey = wishKey
+            wishKey = wishKey,
+            onEvent = {}
         )
     }
 }
@@ -452,7 +476,6 @@ fun PreviewErrorGetWishScreen() {
     MaterialTheme {
         GetWishScreen(
             wishesDateState = UiState.Error("Failed to fetch wishes"),
-            onGetWishesDates = {},
             currentDateState = UiState.Success(
                 DateInfo(
                     day = 16,
@@ -467,9 +490,9 @@ fun PreviewErrorGetWishScreen() {
                 )
             ),
             showSnackbar = {},
-            onOpenWish = { _, _ -> },
             wishState = UiState.Idle(),
-            wishKey = wishKey
+            wishKey = wishKey,
+            onEvent = {}
         )
     }
 }

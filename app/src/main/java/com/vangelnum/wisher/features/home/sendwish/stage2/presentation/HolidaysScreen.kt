@@ -71,12 +71,12 @@ fun HolidaysScreen(
 
         is UiState.Idle -> {}
         is UiState.Loading -> {
-            LoadingScreen(text = stringResource(R.string.loading_holidays))
+            LoadingScreen(loadingText = stringResource(R.string.loading_holidays))
         }
 
         is UiState.Success -> {
             LazyColumn(
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = modifier
             ) {

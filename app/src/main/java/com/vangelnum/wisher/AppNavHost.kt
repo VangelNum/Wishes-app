@@ -1,11 +1,18 @@
 package com.vangelnum.wisher
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.intl.Locale
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -14,15 +21,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.vangelnum.wisher.core.data.UiState
-import com.vangelnum.wisher.features.auth.data.model.AuthResponse
-import com.vangelnum.wisher.features.auth.presentation.login.LoginEvent
-import com.vangelnum.wisher.features.auth.presentation.login.LoginScreen
-import com.vangelnum.wisher.features.auth.presentation.login.LoginViewModel
-import com.vangelnum.wisher.features.auth.presentation.registration.stage1.RegistrationScreen
-import com.vangelnum.wisher.features.auth.presentation.registration.stage2.presentation.LoadAvatarScreen
-import com.vangelnum.wisher.features.auth.presentation.registration.stage2.presentation.UploadAvatarViewModel
+import com.vangelnum.wisher.features.auth.core.model.AuthResponse
+import com.vangelnum.wisher.features.auth.login.presentation.LoginEvent
+import com.vangelnum.wisher.features.auth.login.presentation.LoginScreen
+import com.vangelnum.wisher.features.auth.login.presentation.LoginViewModel
+import com.vangelnum.wisher.features.auth.register.data.model.RegistrationRequest
+import com.vangelnum.wisher.features.auth.register.presentation.RegisterUserViewModel
+import com.vangelnum.wisher.features.auth.register.presentation.RegistrationEvent
+import com.vangelnum.wisher.features.auth.register.presentation.RegistrationScreen
+import com.vangelnum.wisher.features.auth.register.presentation.UploadAvatarScreen
+import com.vangelnum.wisher.features.auth.register.presentation.email_verification.OtpAction
+import com.vangelnum.wisher.features.auth.register.presentation.email_verification.OtpViewModel
+import com.vangelnum.wisher.features.auth.register.presentation.email_verification.VerifyEmailScreen
 import com.vangelnum.wisher.features.home.HomeScreen
-import com.vangelnum.wisher.features.home.getwish.presentation.GetWishEvent
 import com.vangelnum.wisher.features.home.getwish.presentation.GetWishViewModel
 import com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.presentation.WishKeyEvent
 import com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.presentation.WishKeyViewModel
@@ -32,6 +43,46 @@ import com.vangelnum.wisher.features.home.sendwish.stage2.presentation.HolidaysV
 import com.vangelnum.wisher.features.home.sendwish.stage3.presentation.SendWishEvent
 import com.vangelnum.wisher.features.home.sendwish.stage3.presentation.SendWishScreen
 import com.vangelnum.wisher.features.home.sendwish.stage3.presentation.SendWishViewModel
+import com.vangelnum.wisher.features.profile.presentation.ProfileScreen
+import com.vangelnum.wisher.features.profile.presentation.UpdateProfileViewModel
+import com.vangelnum.wisher.features.userviewhistory.presentation.ViewHistoryEvent
+import com.vangelnum.wisher.features.userviewhistory.presentation.ViewHistoryScreen
+import com.vangelnum.wisher.features.userviewhistory.presentation.ViewHistoryViewModel
+import com.vangelnum.wisher.features.userwisheshistory.presentation.UserWishesHistoryScreen
+import com.vangelnum.wisher.features.userwisheshistory.presentation.UserWishesHistoryViewModel
+
+data class ComposableAnimationSpecs(
+    val enter: EnterTransition,
+    val exit: ExitTransition,
+    val popEnter: EnterTransition,
+    val popExit: ExitTransition
+)
+
+fun AnimatedContentTransitionScope<*>.defaultComposableAnimation(): ComposableAnimationSpecs {
+    val enterTransition = slideIntoContainer(
+        animationSpec = tween(300),
+        towards = AnimatedContentTransitionScope.SlideDirection.Left
+    )
+    val exitTransition = slideOutOfContainer(
+        animationSpec = tween(300),
+        towards = AnimatedContentTransitionScope.SlideDirection.Left
+    )
+    val popEnterTransition = slideIntoContainer(
+        animationSpec = tween(300),
+        towards = AnimatedContentTransitionScope.SlideDirection.Right
+    )
+    val popExitTransition = slideOutOfContainer(
+        animationSpec = tween(300),
+        towards = AnimatedContentTransitionScope.SlideDirection.Right
+    )
+
+    return ComposableAnimationSpecs(
+        enter = enterTransition,
+        exit = exitTransition,
+        popEnter = popEnterTransition,
+        popExit = popExitTransition
+    )
+}
 
 @Composable
 fun AppNavHost(
@@ -40,7 +91,7 @@ fun AppNavHost(
     startDestination: Any = LoginPage,
     loginViewModel: LoginViewModel,
     loginState: UiState<AuthResponse>,
-    registrationViewModel: UploadAvatarViewModel,
+    registrationViewModel: RegisterUserViewModel,
     registrationState: UiState<AuthResponse>,
     showSnackbar: (String) -> Unit
 ) {
@@ -50,69 +101,37 @@ fun AppNavHost(
         startDestination = startDestination,
     ) {
         composable<RegistrationPage>(
-            enterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            popEnterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            }
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
         ) {
+            val pendingRegistrationState by registrationViewModel.pendingRegistrationUiState.collectAsStateWithLifecycle()
             RegistrationScreen(
                 onNavigateToLoginPage = {
                     navController.navigate(LoginPage)
                 },
-                onNavigateToUploadAvatarScreen = { name, email, password ->
-                    navController.navigate(
-                        UploadAvatarPage(
-                            name, email, password
+                onNavigateToVerifyEmail = { email, password ->
+                    navController.navigate(VerifyEmailPage(email, password))
+                },
+                onRegisterUser = { name, email, password ->
+                    registrationViewModel.onEvent(
+                        RegistrationEvent.OnRegisterUser(
+                            RegistrationRequest(name, email, password)
                         )
                     )
+                },
+                pendingRegistrationState = pendingRegistrationState,
+                onBackRegistrationState = {
+                    registrationViewModel.onEvent(RegistrationEvent.OnBackToEmptyState)
                 }
             )
         }
         composable<LoginPage>(
-            enterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            popEnterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            }
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
         ) {
             LoginScreen(
                 loginState = loginState,
@@ -133,63 +152,29 @@ fun AppNavHost(
             )
         }
         composable<ProfilePage>(
-            enterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            popEnterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            }
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
         ) {
-            Text("Profile page")
+            val updatedProfileViewModel = hiltViewModel<UpdateProfileViewModel>()
+            if (loginState is UiState.Success) {
+                ProfileScreen(userInfoState = loginViewModel.loginUiState.value, onUpdateProfile = { name, email, password, imageUri, context ->
+                    updatedProfileViewModel.updateProfile(name, email, password, imageUri, context)
+                })
+            }
         }
         composable<HomePage>(
-            enterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            popEnterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            }
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
         ) {
             val wishKeyViewModel: WishKeyViewModel = hiltViewModel()
             val wishesViewModel: GetWishViewModel = hiltViewModel()
             val keyUiState = wishKeyViewModel.keyUiState.collectAsStateWithLifecycle().value
-            val wishesDatesState = wishesViewModel.wishesDatesState.collectAsStateWithLifecycle().value
+            val wishesDatesState =
+                wishesViewModel.wishesDatesState.collectAsStateWithLifecycle().value
             val dateUiState = wishKeyViewModel.dateUiState.collectAsStateWithLifecycle().value
             val wishState = wishesViewModel.wishesState.collectAsStateWithLifecycle().value
             HomeScreen(
@@ -205,91 +190,48 @@ fun AppNavHost(
                     navController.navigate(HolidaysPage(holidayDate, key, currentDate))
                 },
                 wishesDatesState = wishesDatesState,
-                onGetWishesDates = { key ->
-                    wishesViewModel.onEvent(GetWishEvent.OnGetWishesDates(key))
-                },
                 showSnackbar = showSnackbar,
                 wishState = wishState,
-                onOpenWish = { key, id->
-                    wishesViewModel.onEvent(GetWishEvent.OnGetWishes(key, id))
-                },
                 onRegenerateKey = {
                     wishKeyViewModel.onEvent(WishKeyEvent.OnRegenerateWishKey)
+                },
+                onEvent = { event ->
+                    wishesViewModel.onEvent(event)
                 }
             )
         }
         composable<UploadAvatarPage>(
-            enterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            popEnterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            }
-        ) { back ->
-            val args = back.toRoute<UploadAvatarPage>()
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
+        ) { backStack->
+            val args = backStack.toRoute<UploadAvatarPage>()
             val uploadAvatarState = registrationViewModel.uploadAvatarUiState.collectAsStateWithLifecycle().value
-            LoadAvatarScreen(
-                name = args.name,
-                email = args.email,
-                password = args.password,
+            val updateAvatarUiState = registrationViewModel.updateAvatarUiState.collectAsStateWithLifecycle().value
+            UploadAvatarScreen(
                 registrationState = registrationState,
                 uploadAvatarState = uploadAvatarState,
-                onNavigateBack = {
-                    navController.navigateUp()
-                },
                 onEvent = { event ->
                     registrationViewModel.onEvent(event)
                 },
                 onNavigateToHome = {
+                    loginViewModel.onEvent(LoginEvent.OnLoginUser(args.email, args.password))
                     navController.navigate(HomePage) {
                         popUpTo(0)
                     }
+                },
+                updateAvatarState = updateAvatarUiState,
+                onUpdateUserInfo = {
+                    loginViewModel.onEvent(LoginEvent.OnLoginUser(args.email, args.password))
                 }
             )
         }
         composable<HolidaysPage>(
-            enterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            popEnterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            }
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
         ) { navBackStackEntry ->
             val args = navBackStackEntry.toRoute<HolidaysPage>()
             val holidaysViewModel = hiltViewModel<HolidaysViewModel>()
@@ -318,35 +260,15 @@ fun AppNavHost(
             )
         }
         composable<SendWishPage>(
-            enterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-            popEnterTransition = {
-                slideIntoContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    animationSpec = tween(300),
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            }
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
         ) { backStackEntry ->
             val args = backStackEntry.toRoute<SendWishPage>()
             val sendWishViewModel = hiltViewModel<SendWishViewModel>()
             val sendWishUiState = sendWishViewModel.sendWishUiState.collectAsStateWithLifecycle().value
-            val locale =  Locale.current
+            val locale = Locale.current
             val languageCode = Locale(locale.language).toLanguageTag()
             SendWishScreen(
                 holidayDate = args.holidayDate,
@@ -374,17 +296,118 @@ fun AppNavHost(
                     sendWishViewModel.onEvent(SendWishEvent.OnUploadImage(uri))
                 },
                 onNavigateToHomeScreen = {
-                    navController.navigate(HomePage)
+                    navController.navigate(HomePage) {
+                        popUpTo(0)
+                    }
                 },
                 onBackSendState = {
                     sendWishViewModel.onEvent(SendWishEvent.OnSendBackState)
                 },
-                onGenerateTextWishPrompt = { holidayName->
-                    sendWishViewModel.onEvent(SendWishEvent.OnGenerateWishPromptByHoliday(holiday = holidayName, languageCode = languageCode))
+                onGenerateTextWishPrompt = { holidayName ->
+                    sendWishViewModel.onEvent(
+                        SendWishEvent.OnGenerateWishPromptByHoliday(
+                            holiday = holidayName,
+                            languageCode = languageCode
+                        )
+                    )
                 }, onImprovePrompt = { wishText ->
-                    sendWishViewModel.onEvent(SendWishEvent.OnImproveWishPrompt(wishText, languageCode = languageCode))
+                    sendWishViewModel.onEvent(
+                        SendWishEvent.OnImproveWishPrompt(
+                            wishText,
+                            languageCode = languageCode
+                        )
+                    )
                 }
             )
+        }
+        composable<VerifyEmailPage>(
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
+        ) { backStack ->
+            val args = backStack.toRoute<VerifyEmailPage>()
+
+            val otpViewModel = hiltViewModel<OtpViewModel>()
+            val otpState by otpViewModel.state.collectAsStateWithLifecycle()
+            val focusRequesters = remember {
+                List(6) { FocusRequester() }
+            }
+            val focusManager = LocalFocusManager.current
+            val keyboardManager = LocalSoftwareKeyboardController.current
+
+            LaunchedEffect(otpState.focusedIndex) {
+                otpState.focusedIndex?.let { index ->
+                    focusRequesters.getOrNull(index)?.requestFocus()
+                }
+            }
+
+            LaunchedEffect(otpState.code, keyboardManager) {
+                val allNumbersEntered = otpState.code.none { it == null }
+                if (allNumbersEntered) {
+                    focusRequesters.forEach {
+                        it.freeFocus()
+                    }
+                    focusManager.clearFocus()
+                    keyboardManager?.hide()
+                    val verificationCode = otpState.code.joinToString("")
+                    registrationViewModel.onEvent(
+                        RegistrationEvent.OnVerifyEmail(
+                            args.email,
+                            verificationCode
+                        )
+                    )
+                }
+            }
+
+            VerifyEmailScreen(
+                email = args.email,
+                otpState = otpState,
+                focusRequesters = focusRequesters,
+                onAction = { action ->
+                    when (action) {
+                        is OtpAction.OnEnterNumber -> {
+                            if (action.number != null) {
+                                focusRequesters[action.index].freeFocus()
+                            }
+                        }
+
+                        else -> Unit
+                    }
+                    otpViewModel.onAction(action)
+                },
+                registrationState = registrationState,
+                onNavigateUploadAvatarScreen = {
+                    navController.navigate(UploadAvatarPage(args.email, args.password))
+                },
+                modifier = Modifier
+            )
+        }
+        composable<UserWishesHistoryPage>(
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
+        ) {
+            val userWishesHistoryViewModel = hiltViewModel<UserWishesHistoryViewModel>()
+            val sendingHistoryWishes = userWishesHistoryViewModel.mySendingWishesState.collectAsStateWithLifecycle().value
+            UserWishesHistoryScreen(sendingHistoryWishes, onNavigateToViewHistoryScreen = { wishId->
+                navController.navigate(ViewHistoryPage(wishId))
+            }, modifier = Modifier.fillMaxSize())
+        }
+        composable<ViewHistoryPage>(
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
+        ) { backStack ->
+            val args = backStack.toRoute<ViewHistoryPage>()
+            val wishId = args.wishId
+            val viewHistoryViewModel = hiltViewModel<ViewHistoryViewModel>()
+            val viewHistoryState = viewHistoryViewModel.viewHistoryState.collectAsStateWithLifecycle().value
+            ViewHistoryScreen(onLoadViewHistory = {
+                viewHistoryViewModel.onEvent(ViewHistoryEvent.OnGetViewHistory(wishId))
+            }, state = viewHistoryState)
         }
     }
 }

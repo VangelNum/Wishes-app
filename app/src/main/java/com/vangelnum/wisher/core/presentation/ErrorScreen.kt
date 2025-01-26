@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,38 +18,30 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ErrorScreen(
-    modifier: Modifier = Modifier,
     errorMessage: String? = null,
     buttonMessage: String? = null,
     onButtonClick: (() -> Unit)? = null,
     content: (@Composable () -> Unit)? = null,
-    contentAlignment: Alignment = Alignment.TopCenter
+    contentAlignment: Alignment = Alignment.TopCenter,
+    modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier, contentAlignment = contentAlignment) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(8.dp)
         ) {
             if (errorMessage != null) {
-                OutlinedCard(
-                    colors = CardDefaults.outlinedCardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        errorMessage,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.CenterHorizontally)
-                            .padding(16.dp)
-                    )
-
-                }
+                Text(
+                    errorMessage,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                )
             }
             if (buttonMessage != null && onButtonClick != null) {
                 Button(

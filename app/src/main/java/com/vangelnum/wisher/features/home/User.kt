@@ -7,5 +7,7 @@ data class User(
     val name: String,
     val password: String,
     val role: String,
-    val coins: Int
+    val coins: Int,
+    val verificationCode: String?,
+    val isEmailVerified: Boolean
 )

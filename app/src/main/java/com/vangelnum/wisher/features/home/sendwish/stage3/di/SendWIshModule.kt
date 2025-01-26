@@ -13,7 +13,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
-import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -31,7 +30,7 @@ object SendWIshModule {
     @Singleton
     @Provides
     fun provideGenerationTextApi(
-        @Named("PlainTextRetrofit") retrofit: Retrofit
+        retrofit: Retrofit
     ): GenerationTextApi {
         return retrofit.create(GenerationTextApi::class.java)
     }
@@ -47,7 +46,7 @@ object SendWIshModule {
     @Provides
     @Singleton
     fun provideUploadImageApi(
-        @Named("PlainTextRetrofit") retrofit: Retrofit
+        retrofit: Retrofit
     ): UploadImageApi {
         return retrofit.create(UploadImageApi::class.java)
     }

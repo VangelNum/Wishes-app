@@ -3,8 +3,8 @@ package com.vangelnum.wisher.features.home.getwish.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vangelnum.wisher.core.data.UiState
+import com.vangelnum.wisher.features.home.getwish.data.model.Wish
 import com.vangelnum.wisher.features.home.getwish.data.model.WishDatesInfo
-import com.vangelnum.wisher.features.home.getwish.data.model.WishResponse
 import com.vangelnum.wisher.features.home.getwish.domain.repository.GetWishRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +22,7 @@ class GetWishViewModel @Inject constructor(
     private val _wishesDatesState = MutableStateFlow<UiState<List<WishDatesInfo>>>(UiState.Idle())
     val wishesDatesState = _wishesDatesState.asStateFlow()
 
-    private val _wishesState = MutableStateFlow<UiState<WishResponse>>(UiState.Idle())
+    private val _wishesState = MutableStateFlow<UiState<Wish>>(UiState.Idle())
     val wishesState = _wishesState.asStateFlow()
 
     fun onEvent(event: GetWishEvent) {

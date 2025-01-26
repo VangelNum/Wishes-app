@@ -159,7 +159,7 @@ fun SendWishScreen(
         }
 
         is UiState.Loading -> {
-            LoadingScreen(text = "Отправляем поздравление...")
+            LoadingScreen(loadingText = "Отправляем поздравление...")
         }
 
         is UiState.Error -> {
@@ -309,13 +309,13 @@ fun SuccessSendWishContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Пожелание успешно отправлено!",
+            "Пожелание успешно создано!",
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "Скопируйте ключ и поделитесь им, чтобы другие смогли увидеть ваше поздравление.",
+            "Скопируйте ключ и поделитесь им, чтобы другие смогли увидеть ваше пожелание.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
@@ -357,6 +357,7 @@ fun SuccessSendWishContent(
         Spacer(modifier = Modifier.height(12.dp))
         Button(
             onClick = onNavigateToHomeScreen,
+            shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
@@ -734,7 +735,7 @@ fun GeneratedImage(
                             containerColor = Color.White.copy(alpha = 0.7f)
                         )
                     ) {
-                        LoadingScreen(text = "Генерируем..")
+                        LoadingScreen(loadingText = "Генерируем..")
                     }
                 }
 
@@ -755,7 +756,7 @@ fun GeneratedImage(
                                 Card(
                                     modifier = Modifier.aspectRatio(1f)
                                 ) {
-                                    LoadingScreen(text = "Успешно сгенерировано! Загружаем..")
+                                    LoadingScreen(loadingText = "Успешно сгенерировано! Загружаем..")
                                 }
                             },
                             error = {
@@ -841,7 +842,7 @@ fun ImageFromGallery(
                 }
                 if (uploadImageState is UiState.Loading) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    LoadingScreen(text = "Загружаем изображение на сервер")
+                    LoadingScreen(loadingText = "Загружаем изображение на сервер")
                 } else if (uploadImageState is UiState.Error) {
                     Spacer(modifier = Modifier.height(8.dp))
                     ErrorScreen(
@@ -867,7 +868,7 @@ fun ImageFromGallery(
             Text("Выбрать изображение")
         }
         if (uploadImageState is UiState.Loading) {
-            LoadingScreen(text = "Подготовка к загрузке")
+            LoadingScreen(loadingText = "Подготовка к загрузке")
         } else if (uploadImageState is UiState.Error) {
             ErrorScreen(
                 errorMessage = uploadImageState.message,
@@ -912,13 +913,12 @@ fun WishText(
     onImprovePrompt: () -> Unit
 ) {
     when (sendWishState.generateTextState) {
-
         is UiState.Loading -> {
             Card(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 LoadingScreen(
-                    text = "Генерируем текст поздравления..",
+                    loadingText = "Генерируем текст поздравления..",
                     modifier = Modifier.padding(16.dp)
                 )
             }
@@ -940,9 +940,9 @@ fun WishTextContent(
     onWishTextChange: (String) -> Unit,
     improveWishPrompt:()-> Unit
 ) {
-    val maxWishTextLength = 300
+    val maxWishTextLength = 250
     Box(
-        modifier = Modifier.fillMaxSize().background(
+        modifier = Modifier.fillMaxSize().animateContentSize().background(
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
             shape = OutlinedTextFieldDefaults.shape
         ),
@@ -955,7 +955,7 @@ fun WishTextContent(
                 }
             },
             modifier = Modifier
-                .fillMaxWidth().animateContentSize().padding(end = 75.dp)
+                .fillMaxWidth().padding(end = 90.dp)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                     shape = OutlinedTextFieldDefaults.shape
@@ -967,22 +967,35 @@ fun WishTextContent(
             ),
             maxLines = 10
         )
-        AnimatedVisibility(wishText.length > 10, enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
+        AnimatedVisibility(wishText.isNotEmpty(), enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.TopEnd
             ) {
-                IconButton(
-                    onClick = {
-                        improveWishPrompt()
-                    },
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.update_icon),
-                        contentDescription = "update",
-                        modifier = Modifier.padding(end = 16.dp).size(20.dp),
-                        tint = Color.Black.copy(alpha = 0.7f)
-                    )
+                Row {
+                    IconButton(
+                        onClick = {
+                            onWishTextChange("")
+                        },
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_close_24),
+                            contentDescription = "close",
+                            tint = Color.Black.copy(alpha = 0.7f)
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            improveWishPrompt()
+                        },
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_cached_24),
+                            contentDescription = "update",
+                            modifier = Modifier.padding(end = 16.dp),
+                            tint = Color.Black.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
         }
