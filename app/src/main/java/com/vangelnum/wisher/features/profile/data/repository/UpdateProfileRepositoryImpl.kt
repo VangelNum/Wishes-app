@@ -27,6 +27,7 @@ class UpdateProfileRepositoryImpl @Inject constructor(
         name: String?,
         email: String?,
         password: String?,
+        currentPassword: String?,
         avatar: Uri?,
         context: Context
     ): Flow<UiState<AuthResponse>> = flow {
@@ -35,8 +36,9 @@ class UpdateProfileRepositoryImpl @Inject constructor(
             val updateProfileRequest = UpdateProfileRequest(
                 name = name,
                 email = email,
-                password = password,
-                avatarUrl = avatarUrl
+                avatarUrl = avatarUrl,
+                newPassword = password,
+                currentPassword = currentPassword
             )
             val response = profileApi.updateProfileInfo(updateProfileRequest)
             emit(UiState.Success(response))

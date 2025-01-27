@@ -21,10 +21,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
@@ -39,6 +41,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,7 +73,10 @@ import com.vangelnum.wisher.features.auth.register.presentation.VerticalSpacer
 @Composable
 fun ProfileScreen(
     userInfoState: UiState<AuthResponse>,
-    onUpdateProfile: (String?, String?, String?, Uri?, Context) -> Unit,
+    onUpdateProfile: (String?, String?, String?, String?, Uri?, Context) -> Unit,
+    updatedProfileState: UiState<AuthResponse>,
+    onUpdateUserInfo: (email: String, password: String) -> Unit,
+    backToEmptyState: ()->Unit,
     modifier: Modifier = Modifier
 ) {
     when (userInfoState) {
@@ -87,7 +93,10 @@ fun ProfileScreen(
             ProfileContent(
                 data = userInfoState.data,
                 onUpdateProfile = onUpdateProfile,
-                modifier
+                updatedProfileState = updatedProfileState,
+                onUpdateUserInfo = onUpdateUserInfo,
+                backToEmptyState = backToEmptyState,
+                modifier = modifier
             )
         }
     }
@@ -96,14 +105,20 @@ fun ProfileScreen(
 @Composable
 fun ProfileContent(
     data: AuthResponse,
-    onUpdateProfile: (String?, String?, String?, Uri?, Context) -> Unit,
+    onUpdateProfile: (String?, String?, String?, String?, Uri?, Context) -> Unit,
+    updatedProfileState: UiState<AuthResponse>,
+    onUpdateUserInfo: (email: String, password: String) -> Unit,
+    backToEmptyState: ()->Unit,
     modifier: Modifier = Modifier
 ) {
+
     var isEditing by remember { mutableStateOf(false) }
     var editableName by remember { mutableStateOf(data.name) }
     var editableEmail by remember { mutableStateOf(data.email) }
     var editablePassword by remember { mutableStateOf("") }
+    var currentPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var currentPasswordVisible by remember { mutableStateOf(false) }
     var editableAvatarUri by remember { mutableStateOf<Uri?>(null) }
     var currentAvatarUrl by remember { mutableStateOf(data.avatarUrl) }
 
@@ -114,10 +129,12 @@ fun ProfileContent(
     var isNameValid by remember { mutableStateOf(true) }
     var isEmailValid by remember { mutableStateOf(true) }
     var isPasswordValid by remember { mutableStateOf(true) }
+    var isCurrentPasswordValid by remember { mutableStateOf(true) }
 
     val focusRequesterName = remember { FocusRequester() }
     val focusRequesterEmail = remember { FocusRequester() }
     val focusRequesterPassword = remember { FocusRequester() }
+    val focusRequesterCurrentPassword = remember { FocusRequester() }
 
     val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -128,10 +145,22 @@ fun ProfileContent(
 
     val context = LocalContext.current
 
+    LaunchedEffect(updatedProfileState) {
+        if (updatedProfileState is UiState.Success) {
+            if (editablePassword.isEmpty()) {
+                onUpdateUserInfo(editableEmail, currentPassword)
+            } else {
+                onUpdateUserInfo(editableEmail, editablePassword)
+            }
+            backToEmptyState()
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AnimatedVisibility(
@@ -170,6 +199,7 @@ fun ProfileContent(
                     editableName = data.name
                     editableEmail = data.email
                     editablePassword = ""
+                    currentPassword = ""
                     editableAvatarUri = null
                     currentAvatarUrl = data.avatarUrl
                     originalName.value = data.name
@@ -262,31 +292,13 @@ fun ProfileContent(
                     VerticalSpacer(8.dp)
 
                     InputTextField(
-                        labelResId = R.string.password,
-                        placeholderResId = R.string.enter_password,
+                        labelResId = R.string.new_password,
+                        placeholderResId = R.string.enter_new_password,
                         value = editablePassword,
                         onValueChange = { editablePassword = it },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = {
-                            if (isNameValid && isEmailValid && isPasswordValid) {
-                                val updatedName =
-                                    if (editableName != originalName.value) editableName else null
-                                val updatedEmail =
-                                    if (editableEmail != originalEmail.value) editableEmail else null
-                                val updatedPassword =
-                                    if (editablePassword.isNotEmpty()) editablePassword else null
-                                val updatedAvatarUri =
-                                    if (editableAvatarUri?.toString() != originalAvatarUrl.value || editableAvatarUri != null && originalAvatarUrl.value == null) editableAvatarUri else null
-                                onUpdateProfile(
-                                    updatedName,
-                                    updatedEmail,
-                                    updatedPassword,
-                                    updatedAvatarUri,
-                                    context
-                                )
-                            }
-                        }),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusRequesterCurrentPassword.requestFocus() }),
                         focusRequester = focusRequesterPassword,
                         trailingIcon = {
                             val image =
@@ -299,6 +311,48 @@ fun ProfileContent(
                         },
                         isError = !isPasswordValid,
                         errorMessage = if (!isPasswordValid) stringResource(R.string.password_invalid) else null // Reusing password invalid string
+                    )
+                    VerticalSpacer(8.dp)
+
+                    InputTextField(
+                        labelResId = R.string.current_password,
+                        placeholderResId = R.string.enter_current_password,
+                        value = currentPassword,
+                        onValueChange = { currentPassword = it },
+                        visualTransformation = if (currentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = {
+                            if (isNameValid && isEmailValid && isPasswordValid && isCurrentPasswordValid) {
+                                val updatedName =
+                                    if (editableName != originalName.value) editableName else null
+                                val updatedEmail =
+                                    if (editableEmail != originalEmail.value) editableEmail else null
+                                val updatedPassword =
+                                    if (editablePassword.isNotEmpty()) editablePassword else null
+                                val updatedAvatarUri =
+                                    if (editableAvatarUri?.toString() != originalAvatarUrl.value || editableAvatarUri != null && originalAvatarUrl.value == null) editableAvatarUri else null
+                                onUpdateProfile(
+                                    updatedName,
+                                    updatedEmail,
+                                    updatedPassword,
+                                    currentPassword,
+                                    updatedAvatarUri,
+                                    context
+                                )
+                            }
+                        }),
+                        focusRequester = focusRequesterCurrentPassword,
+                        trailingIcon = {
+                            val image =
+                                if (currentPasswordVisible) R.drawable.visibility else R.drawable.visibility_off
+                            IconButton(onClick = {
+                                currentPasswordVisible = !currentPasswordVisible
+                            }) {
+                                Icon(painter = painterResource(image), contentDescription = null)
+                            }
+                        },
+                        isError = !isCurrentPasswordValid,
+                        errorMessage = if (!isCurrentPasswordValid) stringResource(R.string.password_invalid) else null // Reusing password invalid string
                     )
                     VerticalSpacer(16.dp)
 
@@ -314,8 +368,9 @@ fun ProfileContent(
                                     Patterns.EMAIL_ADDRESS.matcher(editableEmail).matches()
                                 isPasswordValid =
                                     editablePassword.isEmpty() || (editablePassword.length in 8..24 && editablePassword.isNotBlank())
+                                isCurrentPasswordValid = currentPassword.isNotBlank()
 
-                                if (isNameValid && isEmailValid && isPasswordValid) {
+                                if (isNameValid && isEmailValid && isPasswordValid && isCurrentPasswordValid) {
                                     val updatedName =
                                         if (editableName != originalName.value) editableName else null
                                     val updatedEmail =
@@ -329,6 +384,7 @@ fun ProfileContent(
                                         updatedName,
                                         updatedEmail,
                                         updatedPassword,
+                                        currentPassword,
                                         updatedAvatarUri,
                                         context
                                     )
@@ -339,6 +395,36 @@ fun ProfileContent(
                             enabled = true
                         ) {
                             Text("Сохранить")
+                        }
+                    }
+                    if (updatedProfileState is UiState.Loading) {
+                        VerticalSpacer(8.dp)
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    if (updatedProfileState is UiState.Error) {
+                        VerticalSpacer(8.dp)
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            ErrorScreen(updatedProfileState.message)
+                        }
+                    }
+                    if (updatedProfileState is UiState.Success) {
+                        VerticalSpacer(8.dp)
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.profile_updated_successfully),
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                 }
@@ -433,6 +519,9 @@ fun ProfileContentPreview() {
     )
     ProfileContent(
         data = mockData,
-        onUpdateProfile = { _, _, _, _, _ -> },
+        onUpdateProfile = { _, _, _, _, _, _ -> },
+        updatedProfileState = UiState.Idle(),
+        onUpdateUserInfo = { _, _ -> },
+        backToEmptyState = {}
     )
 }

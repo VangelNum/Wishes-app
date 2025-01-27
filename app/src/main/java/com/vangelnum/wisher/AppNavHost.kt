@@ -158,10 +158,29 @@ fun AppNavHost(
             popExitTransition = { this.defaultComposableAnimation().popExit }
         ) {
             val updatedProfileViewModel = hiltViewModel<UpdateProfileViewModel>()
+            val updatedProfileState = updatedProfileViewModel.updateProfileState.collectAsStateWithLifecycle().value
+
             if (loginState is UiState.Success) {
-                ProfileScreen(userInfoState = loginViewModel.loginUiState.value, onUpdateProfile = { name, email, password, imageUri, context ->
-                    updatedProfileViewModel.updateProfile(name, email, password, imageUri, context)
-                })
+                ProfileScreen(
+                    userInfoState = loginViewModel.loginUiState.value,
+                    onUpdateProfile = { name, email, password, currentPassword, imageUri, context ->
+                        updatedProfileViewModel.updateProfile(
+                            name,
+                            email,
+                            password,
+                            currentPassword,
+                            imageUri,
+                            context
+                        )
+                    },
+                    updatedProfileState = updatedProfileState,
+                    onUpdateUserInfo = { email, password->
+                        loginViewModel.onEvent(LoginEvent.OnLoginUser(email, password))
+                    },
+                    backToEmptyState = {
+                        updatedProfileViewModel.backToEmptyState()
+                    }
+                )
             }
         }
         composable<HomePage>(
@@ -205,10 +224,12 @@ fun AppNavHost(
             exitTransition = { this.defaultComposableAnimation().exit },
             popEnterTransition = { this.defaultComposableAnimation().popEnter },
             popExitTransition = { this.defaultComposableAnimation().popExit }
-        ) { backStack->
+        ) { backStack ->
             val args = backStack.toRoute<UploadAvatarPage>()
-            val uploadAvatarState = registrationViewModel.uploadAvatarUiState.collectAsStateWithLifecycle().value
-            val updateAvatarUiState = registrationViewModel.updateAvatarUiState.collectAsStateWithLifecycle().value
+            val uploadAvatarState =
+                registrationViewModel.uploadAvatarUiState.collectAsStateWithLifecycle().value
+            val updateAvatarUiState =
+                registrationViewModel.updateAvatarUiState.collectAsStateWithLifecycle().value
             UploadAvatarScreen(
                 registrationState = registrationState,
                 uploadAvatarState = uploadAvatarState,
@@ -267,7 +288,8 @@ fun AppNavHost(
         ) { backStackEntry ->
             val args = backStackEntry.toRoute<SendWishPage>()
             val sendWishViewModel = hiltViewModel<SendWishViewModel>()
-            val sendWishUiState = sendWishViewModel.sendWishUiState.collectAsStateWithLifecycle().value
+            val sendWishUiState =
+                sendWishViewModel.sendWishUiState.collectAsStateWithLifecycle().value
             val locale = Locale.current
             val languageCode = Locale(locale.language).toLanguageTag()
             SendWishScreen(
@@ -390,10 +412,15 @@ fun AppNavHost(
             popExitTransition = { this.defaultComposableAnimation().popExit }
         ) {
             val userWishesHistoryViewModel = hiltViewModel<UserWishesHistoryViewModel>()
-            val sendingHistoryWishes = userWishesHistoryViewModel.mySendingWishesState.collectAsStateWithLifecycle().value
-            UserWishesHistoryScreen(sendingHistoryWishes, onNavigateToViewHistoryScreen = { wishId->
-                navController.navigate(ViewHistoryPage(wishId))
-            }, modifier = Modifier.fillMaxSize())
+            val sendingHistoryWishes =
+                userWishesHistoryViewModel.mySendingWishesState.collectAsStateWithLifecycle().value
+            UserWishesHistoryScreen(
+                sendingHistoryWishes,
+                onNavigateToViewHistoryScreen = { wishId ->
+                    navController.navigate(ViewHistoryPage(wishId))
+                },
+                modifier = Modifier.fillMaxSize()
+            )
         }
         composable<ViewHistoryPage>(
             enterTransition = { this.defaultComposableAnimation().enter },
@@ -404,7 +431,8 @@ fun AppNavHost(
             val args = backStack.toRoute<ViewHistoryPage>()
             val wishId = args.wishId
             val viewHistoryViewModel = hiltViewModel<ViewHistoryViewModel>()
-            val viewHistoryState = viewHistoryViewModel.viewHistoryState.collectAsStateWithLifecycle().value
+            val viewHistoryState =
+                viewHistoryViewModel.viewHistoryState.collectAsStateWithLifecycle().value
             ViewHistoryScreen(onLoadViewHistory = {
                 viewHistoryViewModel.onEvent(ViewHistoryEvent.OnGetViewHistory(wishId))
             }, state = viewHistoryState)

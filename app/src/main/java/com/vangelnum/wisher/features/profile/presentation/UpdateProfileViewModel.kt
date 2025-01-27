@@ -21,11 +21,17 @@ class UpdateProfileViewModel @Inject constructor(
     private val _updateProfileState = MutableStateFlow<UiState<AuthResponse>>(UiState.Idle())
     val updateProfileState = _updateProfileState.asStateFlow()
 
-    fun updateProfile(name: String?, email: String?, password: String?, avatar: Uri?, context: Context) {
+    fun updateProfile(name: String?, email: String?, password: String?, currentPassword: String?, avatar: Uri?, context: Context) {
         viewModelScope.launch {
-            updateProfileRepository.updateUserProfile(name, email, password, avatar, context).collect { state->
+            updateProfileRepository.updateUserProfile(name, email, password, currentPassword, avatar, context).collect { state->
                 _updateProfileState.update { state }
             }
+        }
+    }
+
+    fun backToEmptyState() {
+        _updateProfileState.update {
+            UiState.Idle()
         }
     }
 }

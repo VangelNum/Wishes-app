@@ -31,5 +31,11 @@
     <string name="loading_holidays">Загружаем праздники</string>
     <string name="try_again">Попробовать еще раз</string>
     <string name="holidays">Праздники</string>
-    <string name="another_holiday">Другая причина</string>
+    <string name="another_holiday">Другой повод</string>
+    <string name="profile_update_error">Не удалось обновить профиль. Пожалуйста, попробуйте еще раз.</string>
+    <string name="profile_updated_successfully">Профиль успешно обновлен!</string>
+    <string name="enter_current_password">Введите текущий пароль</string>
+    <string name="current_password">Текущий пароль</string>
+    <string name="new_password">Новый пароль</string>
+    <string name="enter_new_password">Введите новый пароль</string>
 </resources>

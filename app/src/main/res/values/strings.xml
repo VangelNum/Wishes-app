@@ -31,4 +31,10 @@
     <string name="try_again">Try again</string>
     <string name="holidays">Holidays</string>
     <string name="another_holiday">Another occasion</string>
+    <string name="profile_update_error">Failed to update profile. Please try again.</string>
+    <string name="profile_updated_successfully">Profile updated successfully!</string>
+    <string name="enter_current_password">Enter current password</string>
+    <string name="current_password">Current password</string>
+    <string name="new_password">New password</string>
+    <string name="enter_new_password">Enter new password</string>
 </resources>

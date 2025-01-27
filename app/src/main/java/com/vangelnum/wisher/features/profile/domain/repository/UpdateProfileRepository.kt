@@ -11,6 +11,7 @@ interface UpdateProfileRepository {
         name: String?,
         email: String?,
         password: String?,
+        currentPassword: String?,
         avatar: Uri?,
         context: Context
     ): Flow<UiState<AuthResponse>>
