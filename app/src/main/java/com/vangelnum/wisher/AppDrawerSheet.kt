@@ -42,6 +42,8 @@ fun AppDrawerSheet(
     onCloseDrawer: () -> Unit,
     onNavigateSendingHistory: () -> Unit,
     onNavigateProfileScreen: () -> Unit,
+    onNavigateToKeyLogsHistory: () -> Unit,
+    onNavigateToWidgets: () -> Unit,
     onExit: () -> Unit
 ) {
     val view = LocalView.current
@@ -115,6 +117,32 @@ fun AppDrawerSheet(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "wishes_send"
+                )
+            }
+        )
+        NavigationDrawerItem(
+            label = { Text(text = "Просмотренные ключи") },
+            selected = false,
+            onClick = {
+                onNavigateToKeyLogsHistory()
+            },
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.baseline_vpn_key_24),
+                    contentDescription = "key"
+                )
+            }
+        )
+        NavigationDrawerItem(
+            label = { Text(text = "Виджеты") },
+            selected = false,
+            onClick = {
+                onNavigateToWidgets()
+            },
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.baseline_widgets_24),
+                    contentDescription = "widgets"
                 )
             }
         )

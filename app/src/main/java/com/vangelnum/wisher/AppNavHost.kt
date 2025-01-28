@@ -43,13 +43,16 @@ import com.vangelnum.wisher.features.home.sendwish.stage2.presentation.HolidaysV
 import com.vangelnum.wisher.features.home.sendwish.stage3.presentation.SendWishEvent
 import com.vangelnum.wisher.features.home.sendwish.stage3.presentation.SendWishScreen
 import com.vangelnum.wisher.features.home.sendwish.stage3.presentation.SendWishViewModel
+import com.vangelnum.wisher.features.keylogshistory.presentation.KeyLogsHistoryScreen
+import com.vangelnum.wisher.features.keylogshistory.presentation.KeyLogsHistoryViewModel
 import com.vangelnum.wisher.features.profile.presentation.ProfileScreen
 import com.vangelnum.wisher.features.profile.presentation.UpdateProfileViewModel
-import com.vangelnum.wisher.features.userviewhistory.presentation.ViewHistoryEvent
-import com.vangelnum.wisher.features.userviewhistory.presentation.ViewHistoryScreen
-import com.vangelnum.wisher.features.userviewhistory.presentation.ViewHistoryViewModel
-import com.vangelnum.wisher.features.userwisheshistory.presentation.UserWishesHistoryScreen
-import com.vangelnum.wisher.features.userwisheshistory.presentation.UserWishesHistoryViewModel
+import com.vangelnum.wisher.features.userwishsendinghistory.presentation.UserWishesHistoryScreen
+import com.vangelnum.wisher.features.userwishsendinghistory.presentation.UserWishesHistoryViewModel
+import com.vangelnum.wisher.features.userwishviewhistory.presentation.ViewHistoryEvent
+import com.vangelnum.wisher.features.userwishviewhistory.presentation.ViewHistoryScreen
+import com.vangelnum.wisher.features.userwishviewhistory.presentation.ViewHistoryViewModel
+import com.vangelnum.wisher.features.widget.WidgetScreen
 
 data class ComposableAnimationSpecs(
     val enter: EnterTransition,
@@ -139,7 +142,7 @@ fun AppNavHost(
                     loginViewModel.onEvent(LoginEvent.OnBackToEmptyState)
                 },
                 onNavigateToHomeScreen = {
-                    navController.navigate(HomePage) {
+                    navController.navigate(HomePage()) {
                         popUpTo(0)
                     }
                 },
@@ -188,12 +191,14 @@ fun AppNavHost(
             exitTransition = { this.defaultComposableAnimation().exit },
             popEnterTransition = { this.defaultComposableAnimation().popEnter },
             popExitTransition = { this.defaultComposableAnimation().popExit }
-        ) {
+        ) { backStackEntry->
+            val args = backStackEntry.toRoute<HomePage>()
+            val selectedTab = args.selectedTab
+            val key = args.key
             val wishKeyViewModel: WishKeyViewModel = hiltViewModel()
             val wishesViewModel: GetWishViewModel = hiltViewModel()
             val keyUiState = wishKeyViewModel.keyUiState.collectAsStateWithLifecycle().value
-            val wishesDatesState =
-                wishesViewModel.wishesDatesState.collectAsStateWithLifecycle().value
+            val wishesDatesState = wishesViewModel.wishesDatesState.collectAsStateWithLifecycle().value
             val dateUiState = wishKeyViewModel.dateUiState.collectAsStateWithLifecycle().value
             val wishState = wishesViewModel.wishesState.collectAsStateWithLifecycle().value
             HomeScreen(
@@ -216,7 +221,9 @@ fun AppNavHost(
                 },
                 onEvent = { event ->
                     wishesViewModel.onEvent(event)
-                }
+                },
+                key = key,
+                selectedTab = selectedTab
             )
         }
         composable<UploadAvatarPage>(
@@ -238,7 +245,7 @@ fun AppNavHost(
                 },
                 onNavigateToHome = {
                     loginViewModel.onEvent(LoginEvent.OnLoginUser(args.email, args.password))
-                    navController.navigate(HomePage) {
+                    navController.navigate(HomePage()) {
                         popUpTo(0)
                     }
                 },
@@ -318,7 +325,7 @@ fun AppNavHost(
                     sendWishViewModel.onEvent(SendWishEvent.OnUploadImage(uri))
                 },
                 onNavigateToHomeScreen = {
-                    navController.navigate(HomePage) {
+                    navController.navigate(HomePage()) {
                         popUpTo(0)
                     }
                 },
@@ -436,6 +443,26 @@ fun AppNavHost(
             ViewHistoryScreen(onLoadViewHistory = {
                 viewHistoryViewModel.onEvent(ViewHistoryEvent.OnGetViewHistory(wishId))
             }, state = viewHistoryState)
+        }
+        composable<KeyLogsHistoryPage>(
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
+        ) {
+            val keyLogsHistoryViewModel = hiltViewModel<KeyLogsHistoryViewModel>()
+            val keyLogsHistoryState = keyLogsHistoryViewModel.keyLogsHistoryState.collectAsStateWithLifecycle().value
+            KeyLogsHistoryScreen(keyLogsHistoryState, onSearchByKey = { key->
+                navController.navigate(HomePage(key, 1))
+            },Modifier.fillMaxSize())
+        }
+        composable<WidgetPage>(
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
+        ) {
+            WidgetScreen()
         }
     }
 }

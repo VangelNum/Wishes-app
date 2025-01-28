@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId = "com.vangelnum.wisher"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -81,9 +81,13 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.coil.compose)
+    implementation(libs.coil)
 
     implementation(libs.jsoup)
     implementation(libs.translate)
     implementation(libs.language.id)
     implementation(libs.kotlinx.coroutines.play.services)
+
+    implementation (libs.androidx.glance.appwidget)
+    implementation (libs.androidx.glance.material3)
 }

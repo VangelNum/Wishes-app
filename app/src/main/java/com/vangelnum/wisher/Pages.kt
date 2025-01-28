@@ -12,7 +12,10 @@ object LoginPage
 object ProfilePage
 
 @Serializable
-object HomePage
+data class HomePage(
+    val key: String? = null,
+    val selectedTab: Int? = null
+)
 
 @Serializable
 data class UploadAvatarPage(
@@ -46,3 +49,9 @@ object UserWishesHistoryPage
 
 @Serializable
 data class ViewHistoryPage(val wishId: Int)
+
+@Serializable
+object KeyLogsHistoryPage
+
+@Serializable
+object WidgetPage

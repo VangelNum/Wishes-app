@@ -10,6 +10,12 @@ class ErrorParser @Inject constructor(
 ) {
     fun parseError(e: Exception): String {
         if (e is HttpException) {
+            if (e.code() == 401) {
+                return "Вы не авторизованы"
+            }
+            if (e.code() == 500) {
+                return "Сервер недоступен. Попробуйте позже."
+            }
             val errorBody = e.response()?.errorBody()?.string()
             return try {
                 val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)

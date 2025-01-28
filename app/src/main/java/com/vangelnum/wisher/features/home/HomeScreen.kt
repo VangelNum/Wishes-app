@@ -107,7 +107,9 @@ fun HomeScreen(
     showSnackbar: (String) -> Unit,
     wishState: UiState<Wish>,
     onRegenerateKey: () -> Unit,
-    onEvent: (GetWishEvent) -> Unit
+    onEvent: (GetWishEvent) -> Unit,
+    key: String?,
+    selectedTab: Int?
 ) {
     LaunchedEffect(true) {
         onGetWishKey()
@@ -118,9 +120,9 @@ fun HomeScreen(
     val context = LocalContext.current
     var showCalendarDialog by remember { mutableStateOf(false) }
     var selectedHolidayDate by remember { mutableStateOf<LocalDate?>(null) }
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var selectedTabIndex by remember { mutableIntStateOf(selectedTab ?: 0) }
     val wishKey = remember {
-        mutableStateOf("")
+        mutableStateOf(key ?: "")
     }
     var showRegenerateConfirmationDialog by remember { mutableStateOf(false) }
 
@@ -182,7 +184,10 @@ fun HomeScreen(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        FancyIndicatorContainerTabs(onTabSelected = { index -> selectedTabIndex = index })
+        FancyIndicatorContainerTabs(
+            onTabSelected = { index -> selectedTabIndex = index },
+            initialTabIndex = selectedTab ?: 0
+        )
         if (selectedTabIndex == 0) {
             LazyVerticalGrid(
                 GridCells.Fixed(2),
@@ -416,8 +421,8 @@ fun generateLightColor(): Color {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun FancyIndicatorContainerTabs(onTabSelected: (Int) -> Unit) {
-    var state by remember { mutableIntStateOf(0) }
+fun FancyIndicatorContainerTabs(onTabSelected: (Int) -> Unit, initialTabIndex: Int = 0) { // Added initialTabIndex parameter
+    var state by remember { mutableIntStateOf(initialTabIndex) } // Initialize state with initialTabIndex
     val titles = listOf(stringResource(R.string.send_wish), stringResource(R.string.get_wishes))
 
     Column {
@@ -555,7 +560,9 @@ fun PreviewHomeScreen() {
             showSnackbar = {},
             wishState = UiState.Idle(),
             onRegenerateKey = {},
-            onEvent = {}
+            onEvent = {},
+            key = null,
+            selectedTab = 1
         )
     }
 }

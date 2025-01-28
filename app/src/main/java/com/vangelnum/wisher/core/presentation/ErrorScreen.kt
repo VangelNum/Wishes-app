@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -23,6 +25,7 @@ fun ErrorScreen(
     onButtonClick: (() -> Unit)? = null,
     content: (@Composable () -> Unit)? = null,
     contentAlignment: Alignment = Alignment.TopCenter,
+    textStyle: TextStyle =  LocalTextStyle.current,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier, contentAlignment = contentAlignment) {
@@ -40,7 +43,8 @@ fun ErrorScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    style = textStyle
                 )
             }
             if (buttonMessage != null && onButtonClick != null) {

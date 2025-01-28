@@ -76,7 +76,7 @@ fun GetWishScreen(
     showSnackbar: (String) -> Unit,
     wishState: UiState<Wish>,
     wishKey: MutableState<String>,
-    onEvent:(event: GetWishEvent) -> Unit
+    onEvent: (event: GetWishEvent) -> Unit
 ) {
     var selectedWishId by remember { mutableStateOf<Int?>(null) }
     var bottomSheetVisible by remember { mutableStateOf(false) }
@@ -132,7 +132,11 @@ fun GetWishScreen(
             }
             when (wishesDateState) {
                 is UiState.Loading -> {
-                    LoadingScreen(loadingText = "Загружаем даты", contentAlignment = Alignment.TopCenter, modifier = Modifier.padding(top = 16.dp))
+                    LoadingScreen(
+                        loadingText = "Загружаем даты",
+                        contentAlignment = Alignment.TopCenter,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
                 }
 
                 is UiState.Success -> {
@@ -150,6 +154,7 @@ fun GetWishScreen(
                 is UiState.Error -> {
                     ErrorScreen(
                         errorMessage = wishesDateState.message,
+                        textStyle = MaterialTheme.typography.headlineMedium,
                         content = {
                             Image(
                                 painter = painterResource(R.drawable.emptystate),

@@ -90,6 +90,18 @@ class MainActivity : ComponentActivity() {
                                     drawerState.close()
                                 }
                             },
+                            onNavigateToKeyLogsHistory = {
+                                navController.navigate(KeyLogsHistoryPage)
+                                scope.launch {
+                                    drawerState.close()
+                                }
+                            },
+                            onNavigateToWidgets = {
+                                navController.navigate(WidgetPage)
+                                scope.launch {
+                                    drawerState.close()
+                                }
+                            },
                             onExit = {
                                 loginViewModel.onEvent(LoginEvent.OnExit)
                                 scope.launch {
