@@ -9,7 +9,6 @@ kotlinxCoroutinesPlayServices = "1.7.1"
 languageId = "17.0.6"
 loggingInterceptor = "4.11.0"
 retrofit = "2.9.0"
-hiltCompiler = "2.48"
 hiltNavigationCompose = "1.1.0"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
@@ -26,6 +25,7 @@ roomRuntime = "2.6.1"
 serialization = "1.6.3"
 translate = "17.0.3"
 firebaseCrashlyticsBuildtools = "3.0.2"
+hiltCompiler = "2.53"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,9 +38,6 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx"
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 coil = { module = "io.coil-kt:coil", version.ref = "coilCompose" }
-dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "hiltCompiler" }
-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltCompiler" }
-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltCompiler" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -66,6 +63,10 @@ converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", versi
 language-id = { module = "com.google.mlkit:language-id", version.ref = "languageId" }
 translate = { module = "com.google.mlkit:translate", version.ref = "translate" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+
+dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "hiltCompiler" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltCompiler" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltCompiler" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

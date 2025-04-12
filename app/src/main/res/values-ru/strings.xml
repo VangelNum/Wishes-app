@@ -38,4 +38,8 @@
     <string name="current_password">Текущий пароль</string>
     <string name="new_password">Новый пароль</string>
     <string name="enter_new_password">Введите новый пароль</string>
+    <string name="loading">Загрузка…</string>
+    <string name="unknown_error">Неизвестная ошибка</string>
+    <string name="wish_key_not_setup">Ключ не установлен</string>
+    <string name="refresh">Обновить</string>
 </resources>

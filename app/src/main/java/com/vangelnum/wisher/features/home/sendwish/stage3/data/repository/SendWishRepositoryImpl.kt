@@ -33,7 +33,7 @@ class SendWishRepositoryImpl @Inject constructor(
     private val uploadImageApi: UploadImageApi,
     @ApplicationContext private val context: Context
 ) : SendWishRepository {
-    private val baseUrl = "https://wishes-vangel.amvera.io"
+    private val baseUrl = "https://wishesapp-vangel.amvera.io"
     private val maxSeedValue = 999999999
     override suspend fun generateImage(prompt: String, model: String): String {
         val seed = Random.nextInt(1, maxSeedValue + 1)

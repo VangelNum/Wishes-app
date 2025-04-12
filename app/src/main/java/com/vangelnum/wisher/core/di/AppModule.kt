@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
-private const val BASE_URL = "https://wishes-vangel.amvera.io/"
+private const val BASE_URL = "https://wishesapp-vangel.amvera.io/"
 
 @Module
 @InstallIn(SingletonComponent::class)

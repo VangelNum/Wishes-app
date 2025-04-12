@@ -70,10 +70,6 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-
-    implementation(libs.hilt.android)
-    ksp(libs.dagger.compiler)
-    ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.kotlinx.serialization.json)
@@ -90,4 +86,13 @@ dependencies {
 
     implementation (libs.androidx.glance.appwidget)
     implementation (libs.androidx.glance.material3)
+
+    implementation(libs.hilt.android)
+    ksp(libs.dagger.compiler)
+    ksp(libs.hilt.compiler)
+
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    implementation("androidx.hilt:hilt-common:1.2.0")
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
+    implementation("androidx.work:work-runtime-ktx:2.7.0")
 }

@@ -34,4 +34,14 @@ class GetWishRepositoryImpl @Inject constructor(
             emit(UiState.Error(errorParser.parseError(e)))
         }
     }
+
+    override fun getLastWishByKey(key: String): Flow<UiState<Wish>> = flow{
+        emit(UiState.Loading())
+        try {
+            val response = api.getLastWishByKey(key)
+            emit(UiState.Success(response))
+        } catch (e: Exception) {
+            emit(UiState.Error(errorParser.parseError(e)))
+        }
+    }
 }

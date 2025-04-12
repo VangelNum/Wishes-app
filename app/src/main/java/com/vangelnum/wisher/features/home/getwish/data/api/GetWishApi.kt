@@ -11,4 +11,7 @@ interface GetWishApi {
 
     @GET("/api/v1/wish/{key}/{wishId}")
     suspend fun getWishes(@Path("key") key: String, @Path("wishId") wishId: Int): Wish
+
+    @GET("/api/v1/wish/{key}/last")
+    suspend fun getLastWishByKey(@Path("key") key: String): Wish
 }

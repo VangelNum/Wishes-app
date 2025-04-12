@@ -8,4 +8,5 @@ import kotlinx.coroutines.flow.Flow
 interface GetWishRepository {
     fun getDatesByKey(key: String): Flow<UiState<List<WishDatesInfo>>>
     fun getWishes(key: String, id: Int): Flow<UiState<Wish>>
+    fun getLastWishByKey(key: String): Flow<UiState<Wish>>
 }
