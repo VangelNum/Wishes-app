@@ -21,9 +21,20 @@ class UpdateProfileViewModel @Inject constructor(
     private val _updateProfileState = MutableStateFlow<UiState<AuthResponse>>(UiState.Idle())
     val updateProfileState = _updateProfileState.asStateFlow()
 
-    fun updateProfile(name: String?, email: String?, password: String?, currentPassword: String?, avatar: Uri?, context: Context) {
+    private val _uploadAvatarState = MutableStateFlow<UiState<String>>(UiState.Idle())
+    val uploadAvatarState = _uploadAvatarState.asStateFlow()
+
+    fun uploadAvatar(imageUri: Uri, context: Context) {
         viewModelScope.launch {
-            updateProfileRepository.updateUserProfile(name, email, password, currentPassword, avatar, context).collect { state->
+            updateProfileRepository.uploadProfileImage(imageUri, context).collect { state->
+                _uploadAvatarState.update { state }
+            }
+        }
+    }
+
+    fun updateProfile(name: String?, email: String?, password: String?, currentPassword: String?, avatar: String?) {
+        viewModelScope.launch {
+            updateProfileRepository.updateUserProfile(name, email, password, currentPassword, avatar).collect { state->
                 _updateProfileState.update { state }
             }
         }
@@ -31,6 +42,9 @@ class UpdateProfileViewModel @Inject constructor(
 
     fun backToEmptyState() {
         _updateProfileState.update {
+            UiState.Idle()
+        }
+        _uploadAvatarState.update {
             UiState.Idle()
         }
     }

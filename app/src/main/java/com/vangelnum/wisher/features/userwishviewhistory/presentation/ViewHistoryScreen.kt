@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,7 +57,7 @@ fun ViewHistoryScreen(
         }
 
         is UiState.Loading -> {
-            LoadingScreen("Загружаем историю просмотров")
+            LoadingScreen(stringResource(R.string.view_history_loading_message))
         }
 
         is UiState.Success -> {
@@ -77,13 +78,13 @@ fun ViewHistoryEmpty() {
         modifier = Modifier.fillMaxSize()
     ) {
         Text(
-            "Нет просмотров",
+            stringResource(R.string.view_history_empty_message),
             style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center
         )
         Image(
             painter = painterResource(R.drawable.emptystate),
-            contentDescription = "Empty Watches"
+            contentDescription = stringResource(R.string.view_history_empty_image_description)
         )
     }
 }
@@ -128,7 +129,7 @@ fun ViewHistoryItem(viewHistory: ViewHistory) {
                 ) {
                     AsyncImage(
                         model = viewHistory.viewer.avatarUrl,
-                        contentDescription = "User Icon",
+                        contentDescription = stringResource(R.string.user_icon_description),
                         modifier = Modifier.size(60.dp),
                         contentScale = ContentScale.Crop
                     )
@@ -139,7 +140,7 @@ fun ViewHistoryItem(viewHistory: ViewHistory) {
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.defaultprofilephoto),
-                        contentDescription = "User Icon",
+                        contentDescription = stringResource(R.string.user_icon_description),
                         modifier = Modifier.size(60.dp),
                     )
                 }
@@ -177,7 +178,7 @@ fun ViewHistoryContentPreview() {
                         viewer = User(
                             id = 55,
                             name = "chhcchccuhv",
-                            password = "\$2a\$10\$ZOwAHpGITCOgcAlOY.eHP.nR6wc6RhrhSQEBLb300CNy5H.zTEK0e",
+                            password = "",
                             email = "hi301214@mail.ru",
                             avatarUrl = null,
                             role = "USER",
@@ -188,7 +189,7 @@ fun ViewHistoryContentPreview() {
                         wishOwner = User(
                             id = 1,
                             name = "admin",
-                            password = "\$2a\$10\$oT0UaLZf0n/.CEtAG0Q7gOxCt/XLiaX.Shx8uNFUi8ccul50DMkR.",
+                            password = "",
                             email = "vangelnum@gmail.com",
                             avatarUrl = null,
                             role = "ADMIN",
@@ -202,7 +203,7 @@ fun ViewHistoryContentPreview() {
                             user = User(
                                 id = 1,
                                 name = "admin",
-                                password = "\$2a\$10\$oT0UaLZf0n/.CEtAG0Q7gOxCt/XLiaX.Shx8uNFUi8ccul50DMkR.",
+                                password = "",
                                 email = "vangelnum@gmail.com",
                                 avatarUrl = null,
                                 role = "ADMIN",

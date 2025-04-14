@@ -9,7 +9,7 @@
     <string name="enter_your_email">Enter your email</string>
     <string name="password">Password</string>
     <string name="enter_password">Enter password</string>
-    <string name="back">Back</string>
+    <string name="back_button">Back</string> <!-- Kept, renamed from back -->
     <string name="login">Login</string>
     <string name="login_to_countinue">Login to continue using the app</string>
     <string name="already_have_account">Already have account?</string>
@@ -28,7 +28,7 @@
     <string name="password_invalid">Password must be 8 to 24 characters long</string>
     <string name="another_date">Another Date</string>
     <string name="loading_holidays">Loading Holidays</string>
-    <string name="try_again">Try again</string>
+    <string name="retry_button">Retry</string> <!-- Kept -->
     <string name="holidays">Holidays</string>
     <string name="another_holiday">Another occasion</string>
     <string name="profile_update_error">Failed to update profile. Please try again.</string>
@@ -38,7 +38,173 @@
     <string name="new_password">New password</string>
     <string name="enter_new_password">Enter new password</string>
     <string name="loading">Loading…</string>
-    <string name="unknown_error">Unknown error…</string>
     <string name="wish_key_not_setup">Wish key not setup</string>
     <string name="refresh">Refresh</string>
+
+    <string name="back_to_home">Back to Home</string>
+    <string name="unknown_error">An unknown error occurred.</string>
+    <string name="info_icon_description">Information</string>
+
+    <!-- Send Wish Screen States -->
+    <string name="sending_wish_loading">Sending wish…</string>
+    <string name="wish_sent_success_title">Wish Sent Successfully!</string>
+    <string name="wish_sent_success_message">Your wish has been sent! The unique key is: %1$s</string> <!-- %1$s is for the key -->
+
+    <!-- Send Wish Input Content -->
+    <string name="image_section_title">Image</string>
+    <string name="send_button">Send</string>
+
+    <!-- Tabs -->
+    <string name="tab_gallery">From Gallery</string>
+    <string name="tab_generate">Generate</string>
+
+    <!-- Wish Text Input -->
+    <string name="generating_text_loading">Generating wish text…</string>
+    <string name="wish_text_placeholder">Enter your wish text</string>
+    <string name="clear_text_button">Clear text</string> <!-- Kept -->
+    <string name="regenerate_text_button">Improve text</string>
+    <string name="error_generating_text">Error generating text.</string>
+
+    <!-- Image From Gallery -->
+    <string name="selected_image_description">Selected image</string>
+    <string name="select_other_image_button">Select Other Image</string>
+    <string name="uploading_image_loading">Uploading image to server…</string>
+    <string name="error_uploading_image">Error uploading image.</string>
+    <string name="select_image_button">Select Image</string>
+    <string name="error_preparing_upload">Error preparing upload.</string>
+    <string name="preparing_upload_loading">Preparing for upload…</string>
+    <string name="error_loading_image">Error loading image.</string> <!-- Also used in GeneratedImage -->
+
+    <!-- Generated Image -->
+    <string name="loading_models">Loading styles…</string>
+    <string name="error_loading_models">Error loading styles.</string>
+    <string name="no_models_available">No generation styles available.</string>
+    <string name="generate_image_button">Generate Image</string>
+    <string name="generating_image_loading">Generating image…</string>
+    <string name="error_generating_image">Error generating image.</string>
+    <string name="generated_image_description">Generated image</string>
+    <string name="loading_generated_image">Successfully generated! Loading…</string>
+    <string name="generate_again_button">Generate Again</string>
+
+    <!-- Additional Settings -->
+    <string name="additional_settings_title">Additional Settings</string>
+    <string name="collapse_settings">Collapse settings</string>
+    <string name="expand_settings">Expand settings</string>
+    <string name="blur_image_setting">Blur image</string>
+    <string name="max_views_label">Maximum number of views</string>
+    <string name="max_views_placeholder">0 - unlimited</string>
+    <string name="max_views_tooltip">The number of people who can open the wish.</string>
+    <string name="open_date_label">Opening Date</string>
+    <string name="calendar_icon_description">Select date</string>
+    <string name="open_date_tooltip">The date when the recipient can open the wish.</string>
+
+    <!-- Profile Screen Specific Strings -->
+    <string name="edit_profile">Edit Profile</string>
+    <string name="close_profile_editing">Close Profile Editing</string>
+    <string name="profile_editing">Profile Editing</string>
+    <string name="edit_avatar">Edit Avatar</string>
+
+    <string name="enter_new_password_optional">Enter new password (optional)</string>
+    <string name="password_invalid_length">Password must be between 8 and 24 characters</string>
+
+    <string name="enter_current_password_to_save">Enter current password to save changes</string>
+    <string name="current_password_required">Current password is required</string>
+
+    <string name="toggle_password_visibility">Toggle password visibility</string>
+    <string name="profile_avatar">Profile Avatar</string>
+
+    <string name="save_changes">Save Changes</string>
+
+    <string name="avatar_uploaded_successfully">Avatar uploaded successfully</string>
+    <string name="avatar_upload_error">Error uploading avatar: %s</string>
+
+    <string name="verify_email_message">A code has been sent to your email %1$s</string>
+    <string name="verify_email_enter_code">Enter it below</string>
+    <string name="resend_verification_code">Resend Verification Code</string>
+    <string name="resend_verification_code_timer">Resend Verification Code in %1$ds</string>
+    <string name="verifying_code_loading">Verifying code..</string>
+
+    <string name="loading_dates">Loading dates</string>
+    <string name="key_not_found">Key not found</string>
+    <string name="no_wishes">No wishes</string>
+    <string name="empty_wish_list">Empty wish list</string>
+    <string name="wish_open_date_message">Can be opened from %1$s</string>
+    <string name="future_wish">Future Wish</string>
+    <string name="enter_key_placeholder">Enter key</string>
+    <string name="search_icon">Search Icon</string>
+
+    <string name="loading_wish">Loading wish</string>
+
+    <string name="close_drawer">Close drawer</string>
+    <string name="profile">Profile</string>
+    <string name="sent_wishes">Sent wishes</string>
+    <string name="viewed_keys">Viewed keys</string>
+    <string name="widgets">Widgets</string>
+    <string name="default_avatar">Default avatar</string>
+    <string name="user_avatar">User avatar</string>
+    <string name="viewed_keys_icon">Viewed keys icon</string>
+    <string name="widgets_icon">Widgets icon</string>
+
+    <string name="view_history_loading_message">Loading view history</string>
+    <string name="view_history_empty_message">No views yet</string>
+    <string name="view_history_empty_image_description">Empty Watches</string>
+    <string name="user_icon_description">User Icon</string>
+
+    <string name="widget_screen_title">Enter widget key</string>
+
+    <string name="regenerate_key_confirmation_dialog_title">Confirm Key Regeneration</string>
+    <string name="regenerate_key_confirmation_dialog_message">Are you sure you want to regenerate the key? Your wishes will not be deleted. The current key will become unavailable. Wishes will only be accessible with the new key.</string>
+    <string name="regenerate_key_confirmation_dialog_confirm_button">Yes</string>
+    <string name="regenerate_key_confirmation_dialog_dismiss_button">Cancel</string>
+
+    <string name="loading_sent_wishes">Loading sent wishes..</string>
+    <string name="no_sent_wishes">No sent wishes</string>
+    <string name="empty_sending_wishes">Empty Sending Wishes</string>
+    <string name="sent_wishes_history">Sent Wishes History</string>
+    <string name="wish_number">Wish #%1$d</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="wish_image">Wish Image</string>
+    <string name="loading_image">Loading image</string>
+    <string name="open_in_full">Open in full</string>
+    <string name="no_view_limit">View limit is not set</string>
+    <string name="view_limit">View limit: %1$d</string>
+    <string name="wish_blurred">Wish is blurred</string>
+    <string name="wish_not_blurred">Wish is not blurred</string>
+    <string name="wish_date_is">Wish date %1$s</string>
+    <string name="open_date_is">Open date %1$s</string>
+    <string name="view_history">View History</string>
+    <string name="full_screen_wish_image">Full Screen Wish Image</string>
+    <string name="close">Close</string>
+
+    <string name="key_logs_history_error_message">Error loading key view history</string>
+    <string name="key_logs_history_loading_message">Loading key view history</string>
+    <string name="key_logs_history_empty_list">Key view history is empty</string>
+    <string name="key_logs_history_empty_image_description">Empty Watches</string>
+    <string name="key_logs_history_title">Key View History</string>
+    <string name="key_logs_history_show_duplicates">Show duplicates</string>
+    <string name="key_logs_history_viewed_at">Viewed: %1$s (UTC+0)</string>
+    <string name="key_logs_history_search_icon_description">Search key icon</string>
+
+    <string name="success_wish_created_title">Wish created successfully!</string>
+    <string name="success_wish_created_instruction">Copy the key and share it so others can see your wish.</string>
+    <string name="key_copied_message">Key copied</string>
+    <string name="copy_key_description">Copy</string>
+    <string name="share_key_intent_title">Share key</string>
+    <string name="share_key_description">Share</string>
+    <string name="navigate_to_home_screen_button">To Home Screen</string>
+
+    <string name="not_enough_coins">Not enough coins</string>
+
+    <string name="buns_info">In honor of successful registration, we give you 100 coins and 5 free wishes</string>
+    <string name="thanks">Thank you!</string>
+
+    <string name="widget_settings_title">Widget Settings</string>
+    <string name="widget_screen_instruction">Enter the key for the widget. This key will be used to retrieve and display data. The widget displays the last available sent wish</string>
+    <string name="widget_screen_key_label">Widget Key</string>
+    <string name="widget_screen_save_key_button">Save Key and Update Widgets</string>
+    <string name="widget_screen_add_widget_button">Add Widget to Home</string>
+    <string name="widget_screen_update_widget_button">Force Background Update</string>
+    <string name="widget_screen_saved_key_title">Currently Saved Key:</string>
+    <string name="widget_screen_pin_widget_error">Widget pinning not supported</string>
 </resources>

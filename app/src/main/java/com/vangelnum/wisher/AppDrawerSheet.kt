@@ -85,7 +85,7 @@ fun AppDrawerSheet(
             IconButton(onClick = onCloseDrawer) {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = "close"
+                    contentDescription = stringResource(R.string.close_drawer)
                 )
             }
         }
@@ -97,7 +97,7 @@ fun AppDrawerSheet(
         )
         Spacer(modifier = Modifier.height(12.dp))
         NavigationDrawerItem(
-            label = { Text(text = "Профиль") },
+            label = { Text(text = stringResource(R.string.profile)) },
             selected = false,
             onClick = {
                 onNavigateProfileScreen()
@@ -105,23 +105,23 @@ fun AppDrawerSheet(
             icon = {
                 Icon(
                     imageVector = Icons.Filled.Person,
-                    contentDescription = "person"
+                    contentDescription = stringResource(R.string.profile)
                 )
             }
         )
         NavigationDrawerItem(
-            label = { Text(text = "Отправленные пожелания") },
+            label = { Text(text = stringResource(R.string.sent_wishes)) },
             selected = false,
             onClick = onNavigateSendingHistory,
             icon = {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "wishes_send"
+                    contentDescription = stringResource(R.string.sent_wishes)
                 )
             }
         )
         NavigationDrawerItem(
-            label = { Text(text = "Просмотренные ключи") },
+            label = { Text(text = stringResource(R.string.viewed_keys)) },
             selected = false,
             onClick = {
                 onNavigateToKeyLogsHistory()
@@ -129,12 +129,12 @@ fun AppDrawerSheet(
             icon = {
                 Icon(
                     painter = painterResource(R.drawable.baseline_vpn_key_24),
-                    contentDescription = "key"
+                    contentDescription = stringResource(R.string.viewed_keys_icon)
                 )
             }
         )
         NavigationDrawerItem(
-            label = { Text(text = "Виджеты") },
+            label = { Text(text = stringResource(R.string.widgets)) },
             selected = false,
             onClick = {
                 onNavigateToWidgets()
@@ -142,7 +142,7 @@ fun AppDrawerSheet(
             icon = {
                 Icon(
                     painter = painterResource(R.drawable.baseline_widgets_24),
-                    contentDescription = "widgets"
+                    contentDescription = stringResource(R.string.widgets_icon)
                 )
             }
         )
@@ -172,12 +172,12 @@ fun ProfileImage(modifier: Modifier = Modifier, image: String?, name: String) {
         ) {
             Image(
                 painter = painterResource(R.drawable.defaultprofilephoto),
-                contentDescription = "Avatar",
+                contentDescription = stringResource(R.string.default_avatar),
                 modifier = Modifier.size(75.dp),
                 contentScale = ContentScale.Crop
             )
         }
-        Text(name, style = MaterialTheme.typography.titleLarge)
+        Text(text = name, style = MaterialTheme.typography.titleLarge)
     } else {
         Card(
             shape = CircleShape,
@@ -187,11 +187,11 @@ fun ProfileImage(modifier: Modifier = Modifier, image: String?, name: String) {
         ) {
             AsyncImage(
                 model = image,
-                contentDescription = "Avatar",
+                contentDescription = stringResource(R.string.user_avatar),
                 modifier = Modifier.size(75.dp),
                 contentScale = ContentScale.Crop
             )
         }
-        Text(name, style = MaterialTheme.typography.titleLarge)
+        Text(text = name, style = MaterialTheme.typography.titleLarge)
     }
 }

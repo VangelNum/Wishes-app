@@ -26,7 +26,7 @@ class AuthInterceptor @Inject constructor(
             .apply {
                 if (!originalRequest.url.toString().endsWith("/api/v1/user/register") &&
                     !originalRequest.url.toString().endsWith("/api/v1/user/verify-email") &&
-                    !originalRequest.url.toString().endsWith("/api/v1/user/verify-resend-verification-code") &&
+                    !originalRequest.url.toString().endsWith("/api/v1/user/resend-verification-code") &&
                     !originalRequest.url.toString().endsWith("/api/v1/user/me")
                 ) {
                     authorizationHeader?.let { header ->

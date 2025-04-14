@@ -55,3 +55,6 @@ object KeyLogsHistoryPage
 
 @Serializable
 object WidgetPage
+
+@Serializable
+object BunsPage

@@ -12,7 +12,8 @@ interface UpdateProfileRepository {
         email: String?,
         password: String?,
         currentPassword: String?,
-        avatar: Uri?,
-        context: Context
+        avatar: String?,
     ): Flow<UiState<AuthResponse>>
+
+    fun uploadProfileImage(imageUri: Uri, context: Context): Flow<UiState<String>>
 }

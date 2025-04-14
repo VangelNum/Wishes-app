@@ -7,6 +7,7 @@ import com.vangelnum.wisher.features.userwishsendinghistory.data.api.UserWishesH
 import com.vangelnum.wisher.features.userwishsendinghistory.domain.repository.UserWishesHistoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import retrofit2.Response
 import javax.inject.Inject
 
 class UserWishesHistoryRepositoryImpl @Inject constructor(
@@ -21,5 +22,9 @@ class UserWishesHistoryRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             emit(UiState.Error(errorParser.parseError(e)))
         }
+    }
+
+    override suspend fun deleteWish(id: Int): Response<Unit> {
+        return api.deleteWish(id)
     }
 }

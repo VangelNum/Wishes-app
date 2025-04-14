@@ -9,6 +9,7 @@ import com.vangelnum.wisher.features.auth.login.data.api.LoginApi
 import com.vangelnum.wisher.features.auth.login.domain.repository.LoginRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class LoginRepositoryImpl @Inject constructor(
@@ -27,6 +28,17 @@ class LoginRepositoryImpl @Inject constructor(
     private suspend fun saveAuthorizationHeader(header: String) {
         dataStore.edit { preferences ->
             preferences[authorizationHeaderKey] = header
+        }
+    }
+
+    override fun refreshUserData(authorizationHeader: String): Flow<AuthResponse> = flow {
+        try {
+            val response = loginApi.getUserInfo(authorizationHeader)
+            emit(response)
+        } catch (e: HttpException) {
+            throw e
+        } catch (e: Exception) {
+            throw e
         }
     }
 }

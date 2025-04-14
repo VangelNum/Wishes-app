@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vangelnum.wisher.core.data.UiState
+import com.vangelnum.wisher.core.data.UiState.Idle
 import com.vangelnum.wisher.features.auth.core.model.AuthResponse
 import com.vangelnum.wisher.features.auth.login.domain.repository.LoginRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,7 +47,7 @@ class LoginViewModel @Inject constructor(
             }
 
             LoginEvent.OnExit -> {
-                _loginUiState.value = UiState.Idle()
+                _loginUiState.value = Idle()
                 viewModelScope.launch {
                     clearAuthorizationHeader()
                 }
@@ -56,6 +57,25 @@ class LoginViewModel @Inject constructor(
                 viewModelScope.launch {
                     attemptAutoLogin()
                 }
+            }
+
+            LoginEvent.OnRefreshUser -> {
+                refreshUser()
+            }
+        }
+    }
+
+    private fun refreshUser() {
+        viewModelScope.launch {
+            dataStore.data.first()[authorizationHeaderKey]?.let { storedHeader ->
+                loginRepository.refreshUserData(storedHeader)
+                    .onStart {}
+                    .catch { error ->
+                        println("Error refreshing user data: ${error.localizedMessage}")
+                    }
+                    .collect { authResponse ->
+                        _loginUiState.value = UiState.Success(authResponse)
+                    }
             }
         }
     }
@@ -72,7 +92,7 @@ class LoginViewModel @Inject constructor(
                     _loginUiState.value = UiState.Success(it)
                 }
         } ?: run {
-            _loginUiState.value = UiState.Idle()
+            _loginUiState.value = Idle()
         }
     }
 
@@ -86,8 +106,7 @@ class LoginViewModel @Inject constructor(
                 .onStart { _loginUiState.value = UiState.Loading() }
                 .catch { error ->
                     if (error is HttpException && error.code() == 401) {
-                        _loginUiState.value =
-                            UiState.Error("Неверные учетные данные ${error.message()}")
+                        _loginUiState.value = UiState.Error("Invalid credentials or user does not exist")
                     } else {
                         _loginUiState.value =
                             UiState.Error(error.localizedMessage ?: "An unexpected error occurred")
@@ -113,6 +132,6 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun backToEmptyState() {
-        _loginUiState.value = UiState.Idle()
+        _loginUiState.value = Idle()
     }
 }

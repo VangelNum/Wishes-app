@@ -6,7 +6,7 @@ import com.vangelnum.wisher.features.auth.core.model.AuthResponse
 import com.vangelnum.wisher.features.auth.register.data.api.RegisterApi
 import com.vangelnum.wisher.features.auth.register.data.model.UpdateAvatarRequest
 import com.vangelnum.wisher.features.auth.register.domain.repository.UploadImageRepository
-import com.vangelnum.wisher.features.home.sendwish.stage3.data.api.UploadImageApi
+import com.vangelnum.wisher.features.home.sendwish.createwish.data.api.UploadImageApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okhttp3.MultipartBody

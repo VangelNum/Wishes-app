@@ -11,20 +11,21 @@ class ErrorParser @Inject constructor(
     fun parseError(e: Exception): String {
         if (e is HttpException) {
             if (e.code() == 401) {
-                return "Вы не авторизованы"
+                return "You are not logged in"
             }
-            if (e.code() == 500) {
-                return "Сервер недоступен. Попробуйте позже."
+            if (e.code() == 502 || e.code() == 503) {
+                return "Technical work. Please check back later."
             }
             val errorBody = e.response()?.errorBody()?.string()
             return try {
                 val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
                 errorResponse.message ?: e.message()
             } catch (jsonException: Exception) {
+                jsonException.printStackTrace()
                 e.message()
             }
         } else {
-            return e.localizedMessage ?: "Неизвестная ошибка"
+            return e.localizedMessage ?: "Unknown error"
         }
     }
 }

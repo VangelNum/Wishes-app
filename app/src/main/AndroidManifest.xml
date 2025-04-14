@@ -35,7 +35,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/widget_info" />
+                android:resource="@xml/my_app_widget_info" />
         </receiver>
         <provider
             android:name="androidx.startup.InitializationProvider"

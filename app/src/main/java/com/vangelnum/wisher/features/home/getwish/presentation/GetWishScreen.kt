@@ -46,7 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,10 +57,13 @@ import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.ErrorScreen
 import com.vangelnum.wisher.core.presentation.LoadingScreen
+import com.vangelnum.wisher.core.presentation.SnackbarController
+import com.vangelnum.wisher.core.presentation.SnackbarEvent
+import com.vangelnum.wisher.core.utils.string
 import com.vangelnum.wisher.features.home.generateLightColor
 import com.vangelnum.wisher.features.home.getwish.data.model.Wish
 import com.vangelnum.wisher.features.home.getwish.data.model.WishDatesInfo
-import com.vangelnum.wisher.features.home.sendwish.stage1.worldtime.data.model.DateInfo
+import com.vangelnum.wisher.features.home.sendwish.selectdate.worldtime.data.model.DateInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -73,7 +78,6 @@ fun GetWishScreen(
     modifier: Modifier = Modifier,
     wishesDateState: UiState<List<WishDatesInfo>>,
     currentDateState: UiState<DateInfo>,
-    showSnackbar: (String) -> Unit,
     wishState: UiState<Wish>,
     wishKey: MutableState<String>,
     onEvent: (event: GetWishEvent) -> Unit
@@ -82,10 +86,13 @@ fun GetWishScreen(
     var bottomSheetVisible by remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState()
 
+    var previousWishKey by remember { mutableStateOf(wishKey.value) }
+
     LaunchedEffect(wishKey.value) {
-        if (wishKey.value.isNotBlank()) {
+        if (wishKey.value.isNotBlank() && wishKey.value != previousWishKey) {
             delay(500L)
             onEvent(GetWishEvent.OnGetWishesDates(wishKey.value))
+            previousWishKey = wishKey.value
         }
     }
 
@@ -133,7 +140,7 @@ fun GetWishScreen(
             when (wishesDateState) {
                 is UiState.Loading -> {
                     LoadingScreen(
-                        loadingText = "Загружаем даты",
+                        loadingText = stringResource(R.string.loading_dates),
                         contentAlignment = Alignment.TopCenter,
                         modifier = Modifier.padding(top = 16.dp)
                     )
@@ -143,7 +150,6 @@ fun GetWishScreen(
                     WishDatesContent(
                         wishesDateState,
                         currentDate,
-                        showSnackbar,
                         scaffoldState,
                         wishKey.value,
                         onSelectedWishId = { selectedWishId = it },
@@ -158,7 +164,7 @@ fun GetWishScreen(
                         content = {
                             Image(
                                 painter = painterResource(R.drawable.emptystate),
-                                contentDescription = "Key not found"
+                                contentDescription = stringResource(R.string.key_not_found)
                             )
                         },
                         contentAlignment = Alignment.Center
@@ -176,7 +182,6 @@ fun GetWishScreen(
 fun WishDatesContent(
     wishesDateState: UiState.Success<List<WishDatesInfo>>,
     currentDate: LocalDate,
-    showSnackbar: (String) -> Unit,
     scaffoldState: BottomSheetScaffoldState,
     wishKey: String,
     onSelectedWishId: (Int?) -> Unit,
@@ -191,13 +196,13 @@ fun WishDatesContent(
                 modifier = Modifier.fillMaxSize()
             ) {
                 Text(
-                    text = "Нет пожеланий",
+                    text = stringResource(R.string.no_wishes),
                     style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center,
                 )
                 Image(
                     painter = painterResource(R.drawable.emptystate),
-                    contentDescription = "Empty wish list"
+                    contentDescription = stringResource(R.string.empty_wish_list)
                 )
             }
         } else {
@@ -233,9 +238,7 @@ fun WishDatesContent(
                         )
                     }
                     items(wishesForMonth) { wish ->
-                        DateWishItem(wish, currentDate, showSnackbar = { message ->
-                            showSnackbar(message)
-                        }, key = wishKey, onOpenWish = { key, id ->
+                        DateWishItem(wish, currentDate, wishKey, onOpenWish = { key, id ->
                             onSelectedWishId(id)
                             onChangeBottomSheetVisible(true)
                             scope.launch {
@@ -253,7 +256,6 @@ fun WishDatesContent(
 fun DateWishItem(
     wishInfo: WishDatesInfo,
     currentDate: LocalDate,
-    showSnackbar: (String) -> Unit,
     key: String,
     onOpenWish: (key: String, id: Int) -> Unit
 ) {
@@ -264,7 +266,8 @@ fun DateWishItem(
     val openDateFormatter = DateTimeFormatter.ofPattern("d MMMM", Locale("ru"))
     val formattedOpenDate = parsedOpenDate.format(openDateFormatter)
     val isFuture = parsedOpenDate.isAfter(currentDate)
-
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     Card(
         colors = CardDefaults.cardColors(
             containerColor = if (isFuture) MaterialTheme.colorScheme.surfaceVariant else generateLightColor(),
@@ -274,7 +277,9 @@ fun DateWishItem(
             .aspectRatio(1f)
             .clickable {
                 if (isFuture) {
-                    showSnackbar("Можно будет открыть с $formattedOpenDate")
+                    scope.launch {
+                        SnackbarController.sendEvent(SnackbarEvent(string(context, R.string.wish_open_date_message, formattedOpenDate)))
+                    }
                 } else {
                     onOpenWish(key, wishInfo.id.toInt())
                 }
@@ -294,7 +299,7 @@ fun DateWishItem(
                     )
                     Icon(
                         imageVector = Icons.Filled.Lock,
-                        contentDescription = "Future Wish",
+                        contentDescription = stringResource(R.string.future_wish),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -327,14 +332,14 @@ fun WishKeyTextField(wishKey: String, onWishKeyChange: (String) -> Unit) {
             .padding(top = 8.dp, start = 8.dp, end = 8.dp),
         placeholder = {
             Text(
-                "Введите ключ",
+                stringResource(R.string.enter_key_placeholder),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
         },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Filled.Search,
-                contentDescription = "Search Icon",
+                contentDescription = stringResource(R.string.search_icon),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
@@ -345,7 +350,7 @@ fun WishKeyTextField(wishKey: String, onWishKeyChange: (String) -> Unit) {
                         onWishKeyChange("")
                     }
                 ) {
-                    Icon(imageVector = Icons.Filled.Close, contentDescription = "clear text")
+                    Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(R.string.clear_text_button))
                 }
             }
         },
@@ -404,7 +409,6 @@ fun PreviewGetWishScreen() {
                     year = 2024
                 )
             ),
-            showSnackbar = {},
             wishState = UiState.Idle(),
             wishKey = wishKey,
             onEvent = {}
@@ -434,7 +438,6 @@ fun PreviewEmptyGetWishScreen() {
                     year = 2024
                 )
             ),
-            showSnackbar = {},
             wishState = UiState.Idle(),
             wishKey = wishKey,
             onEvent = {}
@@ -464,7 +467,6 @@ fun PreviewLoadingGetWishScreen() {
                     year = 2024
                 )
             ),
-            showSnackbar = {},
             wishState = UiState.Idle(),
             wishKey = wishKey,
             onEvent = {}
@@ -494,7 +496,6 @@ fun PreviewErrorGetWishScreen() {
                     year = 2024
                 )
             ),
-            showSnackbar = {},
             wishState = UiState.Idle(),
             wishKey = wishKey,
             onEvent = {}

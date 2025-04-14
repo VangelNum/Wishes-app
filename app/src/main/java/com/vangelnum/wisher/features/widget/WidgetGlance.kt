@@ -40,7 +40,6 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.layout.wrapContentHeight
-import androidx.glance.layout.wrapContentSize
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -82,9 +81,9 @@ class WidgetGlance : GlanceAppWidget() {
                         ))
             ) {
                 Column(
-                    modifier = GlanceModifier.fillMaxSize()
+                    modifier = GlanceModifier.fillMaxSize().padding(4.dp)
                 ) {
-                    Box(modifier = GlanceModifier.fillMaxWidth().defaultWeight().padding(8.dp)) { // Added weight to content box
+                    Box(modifier = GlanceModifier.fillMaxWidth().defaultWeight().padding(4.dp)) {
                         if (wishKey?.isBlank() == true) {
                             EmptyKeyWidgetContent(context)
                         } else if (isLoading) {
@@ -105,13 +104,13 @@ class WidgetGlance : GlanceAppWidget() {
                         modifier = GlanceModifier
                             .fillMaxWidth()
                             .wrapContentHeight()
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
                         contentAlignment = Alignment.CenterEnd
                     ) {
                         Button(
                             text = string(context, R.string.refresh),
                             onClick = actionRunCallback<RefreshWidgetCallback>(),
-                            modifier = GlanceModifier.wrapContentSize(),
+                            modifier = GlanceModifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -169,7 +168,7 @@ fun SuccessWidgetContent(
     }
 
     Column(
-        modifier = GlanceModifier.fillMaxSize().padding(8.dp),
+        modifier = GlanceModifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -180,7 +179,7 @@ fun SuccessWidgetContent(
         )
         Text(
             text = wishText,
-            maxLines = 3,
+            maxLines = 4,
             style = TextStyle(),
             modifier = GlanceModifier.padding(bottom = 8.dp)
         )

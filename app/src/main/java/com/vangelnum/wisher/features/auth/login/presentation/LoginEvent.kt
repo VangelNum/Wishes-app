@@ -5,4 +5,6 @@ sealed class LoginEvent {
     data object OnBackToEmptyState : LoginEvent()
     data object OnExit : LoginEvent()
     data object OnEnterApp : LoginEvent()
+
+    data object OnRefreshUser : LoginEvent()
 }

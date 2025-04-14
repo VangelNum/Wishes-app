@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.androidx.cardview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -91,8 +92,8 @@ dependencies {
     ksp(libs.dagger.compiler)
     ksp(libs.hilt.compiler)
 
-    implementation("androidx.hilt:hilt-work:1.2.0")
-    implementation("androidx.hilt:hilt-common:1.2.0")
-    ksp("androidx.hilt:hilt-compiler:1.2.0")
-    implementation("androidx.work:work-runtime-ktx:2.7.0")
+    implementation(libs.hilt.work)
+    implementation(libs.hilt.common)
+    ksp(libs.androidx.hilt.compiler)
+    implementation(libs.androidx.work.runtime.ktx)
 }

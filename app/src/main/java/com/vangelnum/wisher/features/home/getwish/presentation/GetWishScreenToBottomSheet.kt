@@ -2,6 +2,7 @@ package com.vangelnum.wisher.features.home.getwish.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,15 +27,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.ErrorScreen
 import com.vangelnum.wisher.core.presentation.LoadingScreen
+import com.vangelnum.wisher.core.presentation.SmallLoadingIndicator
 import com.vangelnum.wisher.features.home.User
 import com.vangelnum.wisher.features.home.getwish.data.model.Wish
 import kotlinx.coroutines.delay
@@ -55,7 +59,7 @@ fun GetWishScreenToBottomSheet(
             is UiState.Idle -> {}
 
             is UiState.Loading -> {
-                LoadingScreen(loadingText = "Загружаем поздравление..")
+                LoadingScreen(loadingText = stringResource(R.string.loading_wish))
             }
 
             is UiState.Success -> {
@@ -117,11 +121,21 @@ fun WishContent(wish: Wish) {
                     .fillMaxHeight()
                     .weight(1f)
             ) {
-                AsyncImage(
+                SubcomposeAsyncImage(
                     model = wish.image,
+                    contentScale = ContentScale.Crop,
                     contentDescription = null,
                     modifier = Modifier.fillMaxHeight(),
-                    contentScale = ContentScale.Crop
+                    loading = {
+                        Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+                            SmallLoadingIndicator()
+                        }
+                    },
+                    error = {
+                        Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+                            ErrorScreen(stringResource(R.string.error_loading_image))
+                        }
+                    }
                 )
             }
         }

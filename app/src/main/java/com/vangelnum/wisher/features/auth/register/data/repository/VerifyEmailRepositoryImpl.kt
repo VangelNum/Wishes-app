@@ -5,6 +5,7 @@ import com.vangelnum.wisher.core.utils.ErrorParser
 import com.vangelnum.wisher.features.auth.core.model.AuthResponse
 import com.vangelnum.wisher.features.auth.register.data.api.VerifyApi
 import com.vangelnum.wisher.features.auth.register.data.model.EmailVerifyRequest
+import com.vangelnum.wisher.features.auth.register.data.model.ResendVerificationCodeRequest
 import com.vangelnum.wisher.features.auth.register.domain.repository.VerifyEmailRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -24,4 +25,9 @@ class VerifyEmailRepositoryImpl @Inject constructor(
                 emit(UiState.Error(errorParser.parseError(e)))
             }
         }
+
+    override suspend fun resendVerificationCode(email: String): String {
+        val request = ResendVerificationCodeRequest(email = email)
+        return verifyApi.resendVerificationCode(request)
+    }
 }

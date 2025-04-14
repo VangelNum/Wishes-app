@@ -1,48 +1,19 @@
 package com.vangelnum.wisher.features.home
 
 import android.app.DatePickerDialog
-import android.content.Intent
 import android.widget.DatePicker
-import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SecondaryTabRow
@@ -50,7 +21,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabIndicatorScope
 import androidx.compose.material3.TabPosition
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,7 +29,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -67,32 +36,25 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.Measurable
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
-import com.vangelnum.wisher.core.presentation.SmallLoadingIndicator
 import com.vangelnum.wisher.features.home.getwish.data.model.Wish
 import com.vangelnum.wisher.features.home.getwish.data.model.WishDatesInfo
 import com.vangelnum.wisher.features.home.getwish.presentation.GetWishEvent
 import com.vangelnum.wisher.features.home.getwish.presentation.GetWishScreen
-import com.vangelnum.wisher.features.home.sendwish.stage1.wishkey.data.model.WishKey
-import com.vangelnum.wisher.features.home.sendwish.stage1.worldtime.data.model.DateInfo
+import com.vangelnum.wisher.features.home.sendwish.selectdate.presentation.RegenerateConfirmationDialog
+import com.vangelnum.wisher.features.home.sendwish.selectdate.presentation.SelectWishDate
+import com.vangelnum.wisher.features.home.sendwish.selectdate.wishkey.data.model.WishKey
+import com.vangelnum.wisher.features.home.sendwish.selectdate.worldtime.data.model.DateInfo
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.Month
-import java.time.YearMonth
-import java.time.format.TextStyle
 import java.util.Calendar
-import java.util.Locale
 import kotlin.random.Random
 
 @Composable
@@ -100,29 +62,20 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     keyUiState: UiState<WishKey>,
     currentDateUiState: UiState<DateInfo>,
-    onGetWishKey: () -> Unit,
-    onGetTime: () -> Unit,
     onNavigateHolidaysScreen: (String, String, String) -> Unit,
     wishesDatesState: UiState<List<WishDatesInfo>>,
-    showSnackbar: (String) -> Unit,
     wishState: UiState<Wish>,
     onRegenerateKey: () -> Unit,
-    onEvent: (GetWishEvent) -> Unit,
-    key: String?,
+    onGetWishEvent: (GetWishEvent) -> Unit,
+    keyFromHistory: String?,
     selectedTab: Int?
 ) {
-    LaunchedEffect(true) {
-        onGetWishKey()
-        onGetTime()
-    }
-
-    val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     var showCalendarDialog by remember { mutableStateOf(false) }
     var selectedHolidayDate by remember { mutableStateOf<LocalDate?>(null) }
     var selectedTabIndex by remember { mutableIntStateOf(selectedTab ?: 0) }
-    val wishKey = remember {
-        mutableStateOf(key ?: "")
+    val wishKeyUserInput = remember {
+        mutableStateOf(keyFromHistory ?: "")
     }
     var showRegenerateConfirmationDialog by remember { mutableStateOf(false) }
 
@@ -161,25 +114,11 @@ fun HomeScreen(
     }
 
     if (showRegenerateConfirmationDialog) {
-        AlertDialog(
-            onDismissRequest = { showRegenerateConfirmationDialog = false },
-            title = { Text("Подтверждение смены ключа") },
-            text = { Text("Вы уверены, что хотите изменить ключ? Ваши пожелания не удалятся. Текущий ключ станет недоступен. Пожелания станут доступны только по новому ключу.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    onRegenerateKey()
-                    showRegenerateConfirmationDialog = false
-                }) {
-                    Text("Да")
-                }
+        RegenerateConfirmationDialog(
+            onShowRegenerateConfirmationDialogChange = {
+                showRegenerateConfirmationDialog = it
             },
-            dismissButton = {
-                TextButton(onClick = {
-                    showRegenerateConfirmationDialog = false
-                }) {
-                    Text("Отмена")
-                }
-            }
+            onRegenerateKey = onRegenerateKey
         )
     }
 
@@ -188,228 +127,30 @@ fun HomeScreen(
             onTabSelected = { index -> selectedTabIndex = index },
             initialTabIndex = selectedTab ?: 0
         )
+
         if (selectedTabIndex == 0) {
-            LazyVerticalGrid(
-                GridCells.Fixed(2),
-                contentPadding = PaddingValues(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black
-                        ),
-                        shape = CircleShape
-                    ) {
-                        SelectionContainer(
-                            modifier = Modifier.defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
-                        ) {
-                            when (keyUiState) {
-                                is UiState.Error -> {
-                                    Text(
-                                        keyUiState.message,
-                                        modifier = Modifier.padding(start = 16.dp, end = 16.dp)
-                                    )
-                                }
-
-                                is UiState.Idle -> {}
-                                is UiState.Loading -> {
-                                    SmallLoadingIndicator()
-                                }
-
-                                is UiState.Success -> {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            keyUiState.data.key.take(15),
-                                            modifier = Modifier.padding(start = 16.dp, end = 16.dp)
-                                        )
-                                        Spacer(modifier = Modifier.weight(1f))
-                                        IconButton(onClick = {
-                                            showRegenerateConfirmationDialog = true
-                                        }) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.baseline_cached_24),
-                                                contentDescription = "Change key"
-                                            )
-                                        }
-                                        IconButton(onClick = {
-                                            clipboardManager.setText(
-                                                AnnotatedString(keyUiState.data.key)
-                                            )
-                                            Toast.makeText(
-                                                context,
-                                                R.string.copied,
-                                                Toast.LENGTH_SHORT
-                                            )
-                                                .show()
-                                        }) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.baseline_content_copy_24),
-                                                contentDescription = "Copy"
-                                            )
-                                        }
-                                        IconButton(onClick = {
-                                            val sendIntent: Intent = Intent().apply {
-                                                action = Intent.ACTION_SEND
-                                                putExtra(
-                                                    Intent.EXTRA_TEXT, keyUiState.data.key
-                                                )
-                                                type = "text/plain"
-                                            }
-                                            val shareIntent =
-                                                Intent.createChooser(sendIntent, null)
-                                            context.startActivity(shareIntent)
-                                        }) {
-                                            Icon(
-                                                Icons.Filled.Share,
-                                                contentDescription = null
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                when (currentDateUiState) {
-                    is UiState.Loading -> {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            Spacer(modifier = Modifier.padding(top = 25.dp))
-                        }
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            LoadingDotsText(text = stringResource(R.string.loading_current_date))
-                        }
-                    }
-
-                    is UiState.Success -> {
-                        val dateInfo = currentDateUiState.data
-                        val currentDayOfMonth = dateInfo.day
-                        val daysInMonth =
-                            YearMonth.of(dateInfo.year, dateInfo.month).lengthOfMonth()
-                        val daysRemaining = daysInMonth - currentDayOfMonth + 1
-                        val daysList = (0 until daysRemaining).toList()
-
-                        items(daysList) { day ->
-                            val dayOfMonth = currentDayOfMonth + day
-                            val randomColor = remember(dayOfMonth) { generateLightColor() }
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clickable {
-                                        if (keyUiState is UiState.Success) {
-                                            val dateString =
-                                                LocalDate
-                                                    .of(
-                                                        dateInfo.year,
-                                                        dateInfo.month,
-                                                        dayOfMonth
-                                                    )
-                                                    .toString()
-                                            onNavigateHolidaysScreen(
-                                                dateString,
-                                                keyUiState.data.key,
-                                                currentDateUiState.data.toString()
-                                            )
-                                        }
-                                    },
-                                colors = CardDefaults.cardColors(
-                                    containerColor = randomColor
-                                ),
-                                shape = RoundedCornerShape(10)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .aspectRatio(1f),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(
-                                            dayOfMonth.toString(),
-                                            style = MaterialTheme.typography.displayLarge
-                                        )
-                                        Text(
-                                            Month.of(dateInfo.month)
-                                                .getDisplayName(
-                                                    TextStyle.FULL,
-                                                    Locale.getDefault()
-                                                )
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            Button(
-                                onClick = {
-                                    showCalendarDialog = true
-                                },
-                                modifier = Modifier.defaultMinSize(
-                                    minHeight = OutlinedTextFieldDefaults.MinHeight
-                                )
-                            ) {
-                                Text(stringResource(R.string.another_date))
-                            }
-                        }
-                    }
-
-                    is UiState.Error -> {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            Text(
-                                text = currentDateUiState.message,
-                                modifier = Modifier.padding(16.dp),
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-
-                    is UiState.Idle -> {}
-                }
-            }
+            SelectWishDate(
+                keyUiState = keyUiState,
+                currentDateUiState = currentDateUiState,
+                onShowRegenerateConfirmationDialogChange = {
+                    showRegenerateConfirmationDialog = it
+                },
+                onShowCalendarDialogChange = {
+                    showCalendarDialog = it
+                },
+                onNavigateHolidaysScreen = onNavigateHolidaysScreen
+            )
         } else {
             GetWishScreen(
                 wishesDateState = wishesDatesState,
                 modifier = Modifier,
                 currentDateState = currentDateUiState,
-                showSnackbar = showSnackbar,
                 wishState = wishState,
-                wishKey = wishKey,
-                onEvent = onEvent
+                wishKey = wishKeyUserInput,
+                onEvent = onGetWishEvent
             )
         }
     }
-}
-
-@Composable
-fun LoadingDotsText(text: String) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        )
-    )
-    val dotCount = (alpha * 3).toInt() + 1
-
-    Text(
-        text = text + ".".repeat(dotCount),
-        textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth()
-    )
 }
 
 fun generateLightColor(): Color {
@@ -421,8 +162,11 @@ fun generateLightColor(): Color {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun FancyIndicatorContainerTabs(onTabSelected: (Int) -> Unit, initialTabIndex: Int = 0) { // Added initialTabIndex parameter
-    var state by remember { mutableIntStateOf(initialTabIndex) } // Initialize state with initialTabIndex
+fun FancyIndicatorContainerTabs(
+    onTabSelected: (Int) -> Unit,
+    initialTabIndex: Int = 0
+) {
+    var state by remember { mutableIntStateOf(initialTabIndex) }
     val titles = listOf(stringResource(R.string.send_wish), stringResource(R.string.get_wishes))
 
     Column {
@@ -483,11 +227,11 @@ fun TabIndicatorScope.FancyAnimatedIndicatorWithModifier(index: Int) {
                         endAnim.animateTo(
                             newEnd,
                             animationSpec =
-                            if (endAnim.targetValue < newEnd) {
-                                spring(dampingRatio = 1f, stiffness = 1000f)
-                            } else {
-                                spring(dampingRatio = 1f, stiffness = 50f)
-                            }
+                                if (endAnim.targetValue < newEnd) {
+                                    spring(dampingRatio = 1f, stiffness = 1000f)
+                                } else {
+                                    spring(dampingRatio = 1f, stiffness = 50f)
+                                }
                         )
                     }
                 }
@@ -497,11 +241,11 @@ fun TabIndicatorScope.FancyAnimatedIndicatorWithModifier(index: Int) {
                         startAnim.animateTo(
                             newStart,
                             animationSpec =
-                            if (startAnim.targetValue < newStart) {
-                                spring(dampingRatio = 1f, stiffness = 50f)
-                            } else {
-                                spring(dampingRatio = 1f, stiffness = 1000f)
-                            }
+                                if (startAnim.targetValue < newStart) {
+                                    spring(dampingRatio = 1f, stiffness = 50f)
+                                } else {
+                                    spring(dampingRatio = 1f, stiffness = 1000f)
+                                }
                         )
                     }
                 }
@@ -538,7 +282,6 @@ fun PreviewHomeScreen() {
     Box(modifier = Modifier.padding(top = 40.dp)) {
         HomeScreen(
             keyUiState = UiState.Idle(),
-            onGetWishKey = {},
             currentDateUiState = UiState.Success(
                 DateInfo(
                     day = 27,
@@ -552,17 +295,15 @@ fun PreviewHomeScreen() {
                     year = 2024
                 )
             ),
-            onGetTime = {},
             onNavigateHolidaysScreen = { _, _, _ ->
 
             },
             wishesDatesState = UiState.Idle(),
-            showSnackbar = {},
             wishState = UiState.Idle(),
             onRegenerateKey = {},
-            onEvent = {},
-            key = null,
-            selectedTab = 1
+            onGetWishEvent = {},
+            keyFromHistory = null,
+            selectedTab = 0
         )
     }
 }

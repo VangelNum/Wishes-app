@@ -35,7 +35,7 @@ class GetWishRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getLastWishByKey(key: String): Flow<UiState<Wish>> = flow{
+    override fun getLastWishByKey(key: String): Flow<UiState<Wish>> = flow {
         emit(UiState.Loading())
         try {
             val response = api.getLastWishByKey(key)

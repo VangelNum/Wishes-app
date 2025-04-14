@@ -24,9 +24,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,6 +39,7 @@ import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.ErrorScreen
 import com.vangelnum.wisher.core.presentation.LoadingScreen
+import com.vangelnum.wisher.features.auth.core.utils.copyKey
 import com.vangelnum.wisher.features.home.User
 import com.vangelnum.wisher.features.keylogshistory.data.model.KeyLogsHistory
 import java.time.LocalDateTime
@@ -48,12 +53,12 @@ fun KeyLogsHistoryScreen(
 ) {
     when (state) {
         is UiState.Error -> {
-            ErrorScreen("Ошибка загрузки истории просмотров ключей")
+            ErrorScreen(stringResource(R.string.key_logs_history_error_message))
         }
 
         is UiState.Idle -> {}
         is UiState.Loading -> {
-            LoadingScreen("Загружаем историю просмотров ключей")
+            LoadingScreen(stringResource(R.string.key_logs_history_loading_message))
         }
 
         is UiState.Success -> {
@@ -74,13 +79,13 @@ fun KeyLogsHistoryEmpty() {
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
         Text(
-            "Список просмотренных ключей пуст",
+            stringResource(R.string.key_logs_history_empty_list),
             style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center
         )
         Image(
             painter = painterResource(R.drawable.emptystate),
-            contentDescription = "Empty Watches"
+            contentDescription = stringResource(R.string.key_logs_history_empty_image_description)
         )
     }
 }
@@ -91,7 +96,7 @@ fun KeyLogsHistoryContent(
     onSearchByKey: (key: String) -> Unit,
     modifier: Modifier
 ) {
-    val showDuplicatesState = remember { mutableStateOf(true) }
+    val showDuplicatesState = remember { mutableStateOf(false) }
     val sortedData = data.sortedByDescending { it.id }
     val filteredData = if (showDuplicatesState.value) {
         sortedData
@@ -104,13 +109,13 @@ fun KeyLogsHistoryContent(
         modifier = modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
     ) {
         Text(
-            text = "История просмотренных ключей",
+            text = stringResource(R.string.key_logs_history_title),
             style = MaterialTheme.typography.headlineMedium
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedCard {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(8.dp).padding(start = 8.dp, end = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Показывать дубликаты")
+                Text(stringResource(R.string.key_logs_history_show_duplicates))
                 Switch(
                     checked = showDuplicatesState.value,
                     onCheckedChange = { showDuplicatesState.value = it }
@@ -136,6 +141,9 @@ fun KeyLogsHistoryCard(
     onSearchByKey: (key: String) -> Unit,
     modifier: Modifier
 ) {
+    val scope = rememberCoroutineScope()
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth(),
@@ -162,15 +170,21 @@ fun KeyLogsHistoryCard(
                     DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").format(viewedAtDateTime)
 
                 Text(
-                    text = "Просмотрено: $formattedDate (UTC+0)",
+                    text = stringResource(R.string.key_logs_history_viewed_at, formattedDate),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            IconButton(onClick = { copyKey(clipboardManager, keyLogsInfo.key, scope, context) }) {
+                Icon(
+                    painter = painterResource(R.drawable.baseline_content_copy_24),
+                    contentDescription = stringResource(R.string.copy_key_description)
                 )
             }
             IconButton(onClick = { onSearchByKey(keyLogsInfo.key) }) {
                 Icon(
                     imageVector = Icons.Filled.Search,
-                    contentDescription = "Иконка поиска ключа"
+                    contentDescription = stringResource(R.string.key_logs_history_search_icon_description)
                 )
             }
         }
@@ -248,6 +262,5 @@ fun KeyLogsHistoryScreenContentPreview() {
             )
         )
     )
-    val showDuplicatesPreviewState = remember { mutableStateOf(true) }
     KeyLogsHistoryScreen(state = UiState.Success(sampleData), onSearchByKey = {}, Modifier)
 }

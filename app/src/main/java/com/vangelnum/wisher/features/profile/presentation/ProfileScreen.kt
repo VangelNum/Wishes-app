@@ -11,6 +11,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,7 +30,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
@@ -48,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -67,37 +68,39 @@ import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.ErrorScreen
 import com.vangelnum.wisher.core.presentation.LoadingScreen
+import com.vangelnum.wisher.core.presentation.SnackbarController
+import com.vangelnum.wisher.core.presentation.SnackbarEvent
+import com.vangelnum.wisher.core.utils.string
 import com.vangelnum.wisher.features.auth.core.model.AuthResponse
 import com.vangelnum.wisher.features.auth.register.presentation.VerticalSpacer
 
 @Composable
 fun ProfileScreen(
     userInfoState: UiState<AuthResponse>,
-    onUpdateProfile: (String?, String?, String?, String?, Uri?, Context) -> Unit,
-    updatedProfileState: UiState<AuthResponse>,
+    onUpdateProfile: (String?, String?, String?, String, String?, Context) -> Unit,
+    updateProfileState: UiState<AuthResponse>,
+    onUploadImage: (imageUri: Uri, context: Context) -> Unit,
+    uploadImageState: UiState<String>,
     onUpdateUserInfo: (email: String, password: String) -> Unit,
-    backToEmptyState: ()->Unit,
+    backToEmptyState: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (userInfoState) {
-        is UiState.Error -> {
-            ErrorScreen("Ошибка загрузки профиля")
-        }
+        is UiState.Error -> ErrorScreen(userInfoState.message)
+        is UiState.Loading -> LoadingScreen("Loading profile info")
+        is UiState.Success -> ProfileContent(
+            data = userInfoState.data,
+            onUpdateProfile = onUpdateProfile,
+            updatedProfileState = updateProfileState,
+            onUploadImage = onUploadImage,
+            uploadImageState = uploadImageState,
+            onUpdateUserInfo = onUpdateUserInfo,
+            backToEmptyState = backToEmptyState,
+            modifier = modifier
+        )
 
-        is UiState.Idle -> {}
-        is UiState.Loading -> {
-            LoadingScreen("Загружаем информацию о профиле")
-        }
-
-        is UiState.Success -> {
-            ProfileContent(
-                data = userInfoState.data,
-                onUpdateProfile = onUpdateProfile,
-                updatedProfileState = updatedProfileState,
-                onUpdateUserInfo = onUpdateUserInfo,
-                backToEmptyState = backToEmptyState,
-                modifier = modifier
-            )
+        else -> {
+            LoadingScreen()
         }
     }
 }
@@ -105,61 +108,94 @@ fun ProfileScreen(
 @Composable
 fun ProfileContent(
     data: AuthResponse,
-    onUpdateProfile: (String?, String?, String?, String?, Uri?, Context) -> Unit,
+    onUpdateProfile: (String?, String?, String?, String, String?, Context) -> Unit,
     updatedProfileState: UiState<AuthResponse>,
+    onUploadImage: (imageUri: Uri, context: Context) -> Unit,
+    uploadImageState: UiState<String>,
     onUpdateUserInfo: (email: String, password: String) -> Unit,
-    backToEmptyState: ()->Unit,
+    backToEmptyState: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     var isEditing by remember { mutableStateOf(false) }
     var editableName by remember { mutableStateOf(data.name) }
     var editableEmail by remember { mutableStateOf(data.email) }
     var editablePassword by remember { mutableStateOf("") }
     var currentPassword by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+    var newPasswordVisible by remember { mutableStateOf(false) }
     var currentPasswordVisible by remember { mutableStateOf(false) }
     var editableAvatarUri by remember { mutableStateOf<Uri?>(null) }
-    var currentAvatarUrl by remember { mutableStateOf(data.avatarUrl) }
-
+    var currentAvatarUrl by remember(data.avatarUrl) { mutableStateOf(data.avatarUrl) }
+    var uploadedAvatarUrl by remember { mutableStateOf<String?>(null) }
     val originalName = remember { mutableStateOf(data.name) }
     val originalEmail = remember { mutableStateOf(data.email) }
     val originalAvatarUrl = remember { mutableStateOf(data.avatarUrl) }
-
     var isNameValid by remember { mutableStateOf(true) }
     var isEmailValid by remember { mutableStateOf(true) }
-    var isPasswordValid by remember { mutableStateOf(true) }
+    var isNewPasswordValid by remember { mutableStateOf(true) }
     var isCurrentPasswordValid by remember { mutableStateOf(true) }
-
     val focusRequesterName = remember { FocusRequester() }
     val focusRequesterEmail = remember { FocusRequester() }
     val focusRequesterPassword = remember { FocusRequester() }
     val focusRequesterCurrentPassword = remember { FocusRequester() }
 
+    val context = LocalContext.current
+
     val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
             editableAvatarUri = uri
+            uploadedAvatarUrl = null
         }
     )
 
-    val context = LocalContext.current
+    LaunchedEffect(editableAvatarUri) {
+        editableAvatarUri?.let { uri ->
+            onUploadImage(uri, context)
+        }
+    }
+
+    LaunchedEffect(uploadImageState) {
+        when (uploadImageState) {
+            is UiState.Success -> {
+                uploadedAvatarUrl = uploadImageState.data
+                currentAvatarUrl = uploadImageState.data
+                editableAvatarUri = null
+                SnackbarController.sendEvent(SnackbarEvent(string(context, R.string.avatar_uploaded_successfully)))
+            }
+
+            is UiState.Error -> {
+                SnackbarController.sendEvent(SnackbarEvent("Error upload avatar: ${uploadImageState.message}"))
+                editableAvatarUri = null
+            }
+
+            else -> {}
+        }
+    }
 
     LaunchedEffect(updatedProfileState) {
-        if (updatedProfileState is UiState.Success) {
-            if (editablePassword.isEmpty()) {
-                onUpdateUserInfo(editableEmail, currentPassword)
-            } else {
-                onUpdateUserInfo(editableEmail, editablePassword)
+        when (updatedProfileState) {
+            is UiState.Success -> {
+                SnackbarController.sendEvent(SnackbarEvent(string(context, R.string.profile_updated_successfully)))
+                val finalEmail = updatedProfileState.data.email
+                val finalPassword = if (editablePassword.trim().isNotEmpty()) editablePassword.trim() else currentPassword.trim()
+                onUpdateUserInfo(finalEmail, finalPassword)
+                isEditing = false
+                backToEmptyState()
             }
-            backToEmptyState()
+
+            is UiState.Error -> {
+                SnackbarController.sendEvent(SnackbarEvent("Update error: ${updatedProfileState.message}"))
+                backToEmptyState()
+            }
+
+            else -> {}
         }
     }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            .padding(16.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -168,21 +204,16 @@ fun ProfileContent(
             enter = expandVertically(expandFrom = Alignment.Top),
             exit = shrinkVertically(shrinkTowards = Alignment.Top)
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Card(
-                    shape = CircleShape
-                ) {
-                    ProfileAvatar(avatarUrl = currentAvatarUrl)
+            Column {
+                Card(shape = CircleShape) {
+                    ProfileAvatar(
+                        avatarUrl = currentAvatarUrl,
+                        isUploading = false
+                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = data.name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp
-                )
+                Text(text = data.name, fontWeight = FontWeight.Bold, fontSize = 24.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-
                 Text(
                     text = data.email,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -196,15 +227,21 @@ fun ProfileContent(
             onClick = {
                 isEditing = !isEditing
                 if (isEditing) {
-                    editableName = data.name
-                    editableEmail = data.email
+                    editableName = originalName.value
+                    editableEmail = originalEmail.value
+                    currentAvatarUrl = originalAvatarUrl.value
                     editablePassword = ""
                     currentPassword = ""
                     editableAvatarUri = null
-                    currentAvatarUrl = data.avatarUrl
-                    originalName.value = data.name
-                    originalEmail.value = data.email
-                    originalAvatarUrl.value = data.avatarUrl
+                    uploadedAvatarUrl = null
+                    isNameValid = true
+                    isEmailValid = true
+                    isNewPasswordValid = true
+                    isCurrentPasswordValid = true
+                } else {
+                    editableAvatarUri = null
+                    uploadedAvatarUrl = null
+                    currentAvatarUrl = originalAvatarUrl.value
                 }
             },
             modifier = Modifier
@@ -213,7 +250,7 @@ fun ProfileContent(
         ) {
             Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit Profile")
             Spacer(modifier = Modifier.width(4.dp))
-            Text(if (isEditing) "Закрыть редактирование профиля" else "Редактировать профиль")
+            Text(if (isEditing) stringResource(R.string.close_profile_editing) else stringResource(R.string.edit_profile))
         }
         VerticalSpacer(16.dp)
 
@@ -227,48 +264,55 @@ fun ProfileContent(
                     .fillMaxWidth()
                     .padding(top = 8.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)) {
                     Text(
-                        "Редактирование профиля",
+                        stringResource(R.string.profile_editing),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
                     )
                     VerticalSpacer(16.dp)
 
-                    Card(
-                        shape = CircleShape,
-                        modifier = Modifier.align(Alignment.Start)
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box {
-                            ProfileAvatar(
-                                avatarUrl = editableAvatarUri?.toString() ?: currentAvatarUrl
-                            )
-                            IconButton(
-                                onClick = {
-                                    singlePhotoPickerLauncher.launch(
-                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                    )
-                                },
-                                modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .padding(4.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.baseline_edit_24),
-                                    contentDescription = "Edit Avatar",
-                                    tint = MaterialTheme.colorScheme.primary
+                        Card(
+                            shape = CircleShape,
+                        ) {
+                            Box {
+                                ProfileAvatar(
+                                    avatarUrl = editableAvatarUri?.toString() ?: currentAvatarUrl,
+                                    isUploading = uploadImageState is UiState.Loading
                                 )
+                                IconButton(
+                                    onClick = {
+                                        singlePhotoPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(16.dp)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                                        .size(36.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.baseline_edit_24),
+                                        contentDescription = stringResource(R.string.edit_avatar),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             }
                         }
                     }
-                    VerticalSpacer(16.dp)
-
+                    VerticalSpacer(24.dp)
 
                     InputTextField(
                         labelResId = R.string.username,
                         placeholderResId = R.string.enter_your_name,
                         value = editableName,
-                        onValueChange = { editableName = it },
+                        onValueChange = { editableName = it; isNameValid = true },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { focusRequesterEmail.requestFocus() }),
                         focusRequester = focusRequesterName,
@@ -281,78 +325,52 @@ fun ProfileContent(
                         labelResId = R.string.email,
                         placeholderResId = R.string.enter_your_email,
                         value = editableEmail,
-                        onValueChange = { editableEmail = it },
+                        onValueChange = { editableEmail = it; isEmailValid = true },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { focusRequesterPassword.requestFocus() }),
                         focusRequester = focusRequesterEmail,
                         isError = !isEmailValid,
                         errorMessage = if (!isEmailValid) stringResource(R.string.email_invalid) else null
                     )
-
                     VerticalSpacer(8.dp)
 
                     InputTextField(
                         labelResId = R.string.new_password,
-                        placeholderResId = R.string.enter_new_password,
+                        placeholderResId = R.string.enter_new_password_optional,
                         value = editablePassword,
-                        onValueChange = { editablePassword = it },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        onValueChange = { editablePassword = it; isNewPasswordValid = true },
+                        visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { focusRequesterCurrentPassword.requestFocus() }),
                         focusRequester = focusRequesterPassword,
                         trailingIcon = {
-                            val image =
-                                if (passwordVisible) R.drawable.visibility else R.drawable.visibility_off
-                            IconButton(onClick = {
-                                passwordVisible = !passwordVisible
-                            }) {
-                                Icon(painter = painterResource(image), contentDescription = null)
+                            val image = if (newPasswordVisible) R.drawable.visibility else R.drawable.visibility_off
+                            IconButton(onClick = { newPasswordVisible = !newPasswordVisible }) {
+                                Icon(painter = painterResource(image), contentDescription = stringResource(R.string.toggle_password_visibility))
                             }
                         },
-                        isError = !isPasswordValid,
-                        errorMessage = if (!isPasswordValid) stringResource(R.string.password_invalid) else null // Reusing password invalid string
+                        isError = !isNewPasswordValid,
+                        errorMessage = if (!isNewPasswordValid) stringResource(R.string.password_invalid_length) else null
                     )
                     VerticalSpacer(8.dp)
 
                     InputTextField(
                         labelResId = R.string.current_password,
-                        placeholderResId = R.string.enter_current_password,
+                        placeholderResId = R.string.enter_current_password_to_save,
                         value = currentPassword,
-                        onValueChange = { currentPassword = it },
+                        onValueChange = { currentPassword = it; isCurrentPasswordValid = true },
                         visualTransformation = if (currentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = {
-                            if (isNameValid && isEmailValid && isPasswordValid && isCurrentPasswordValid) {
-                                val updatedName =
-                                    if (editableName != originalName.value) editableName else null
-                                val updatedEmail =
-                                    if (editableEmail != originalEmail.value) editableEmail else null
-                                val updatedPassword =
-                                    if (editablePassword.isNotEmpty()) editablePassword else null
-                                val updatedAvatarUri =
-                                    if (editableAvatarUri?.toString() != originalAvatarUrl.value || editableAvatarUri != null && originalAvatarUrl.value == null) editableAvatarUri else null
-                                onUpdateProfile(
-                                    updatedName,
-                                    updatedEmail,
-                                    updatedPassword,
-                                    currentPassword,
-                                    updatedAvatarUri,
-                                    context
-                                )
-                            }
-                        }),
+                        keyboardActions = KeyboardActions(onDone = { }),
                         focusRequester = focusRequesterCurrentPassword,
                         trailingIcon = {
-                            val image =
-                                if (currentPasswordVisible) R.drawable.visibility else R.drawable.visibility_off
-                            IconButton(onClick = {
-                                currentPasswordVisible = !currentPasswordVisible
-                            }) {
-                                Icon(painter = painterResource(image), contentDescription = null)
+                            val image = if (currentPasswordVisible) R.drawable.visibility else R.drawable.visibility_off
+                            IconButton(onClick = { currentPasswordVisible = !currentPasswordVisible }) {
+                                Icon(painter = painterResource(image), contentDescription = stringResource(R.string.toggle_password_visibility))
                             }
                         },
                         isError = !isCurrentPasswordValid,
-                        errorMessage = if (!isCurrentPasswordValid) stringResource(R.string.password_invalid) else null // Reusing password invalid string
+                        errorMessage = if (!isCurrentPasswordValid) stringResource(R.string.current_password_required) else null
                     )
                     VerticalSpacer(16.dp)
 
@@ -360,43 +378,43 @@ fun ProfileContent(
                         modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.BottomEnd
                     ) {
-                        Button(
+                        ElevatedButton(
                             onClick = {
-                                isNameValid =
-                                    editableName.length in 2..24 && editableName.isNotBlank()
-                                isEmailValid =
-                                    Patterns.EMAIL_ADDRESS.matcher(editableEmail).matches()
-                                isPasswordValid =
-                                    editablePassword.isEmpty() || (editablePassword.length in 8..24 && editablePassword.isNotBlank())
+                                isNameValid = editableName.trim().length in 2..24
+                                isEmailValid = Patterns.EMAIL_ADDRESS.matcher(editableEmail.trim()).matches()
+                                isNewPasswordValid = editablePassword.isEmpty() || editablePassword.length in 8..24
                                 isCurrentPasswordValid = currentPassword.isNotBlank()
 
-                                if (isNameValid && isEmailValid && isPasswordValid && isCurrentPasswordValid) {
-                                    val updatedName =
-                                        if (editableName != originalName.value) editableName else null
-                                    val updatedEmail =
-                                        if (editableEmail != originalEmail.value) editableEmail else null
-                                    val updatedPassword =
-                                        if (editablePassword.isNotEmpty()) editablePassword else null
-                                    val updatedAvatarUri =
-                                        if (editableAvatarUri?.toString() != originalAvatarUrl.value || editableAvatarUri != null && originalAvatarUrl.value == null) editableAvatarUri else null
+                                if (isNameValid && isEmailValid && isNewPasswordValid && isCurrentPasswordValid) {
+                                    val nameToSend = if (editableName != originalName.value) editableName.trim() else null
+                                    val emailToSend = if (editableEmail != originalEmail.value) editableEmail.trim() else null
+                                    val passwordToSend = if (editablePassword.isNotEmpty()) editablePassword.trim() else null
+                                    val currentPasswordToSend = currentPassword.trim()
+                                    val avatarUrlToSend = if (uploadedAvatarUrl != null && uploadedAvatarUrl != originalAvatarUrl.value) {
+                                        uploadedAvatarUrl
+                                    } else {
+                                        null
+                                    }
 
                                     onUpdateProfile(
-                                        updatedName,
-                                        updatedEmail,
-                                        updatedPassword,
-                                        currentPassword,
-                                        updatedAvatarUri,
+                                        nameToSend,
+                                        emailToSend,
+                                        passwordToSend,
+                                        currentPasswordToSend,
+                                        avatarUrlToSend,
                                         context
                                     )
-                                    currentAvatarUrl =
-                                        editableAvatarUri?.toString() ?: currentAvatarUrl
                                 }
                             },
-                            enabled = true
+                            enabled = updatedProfileState !is UiState.Loading && uploadImageState !is UiState.Loading,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
                         ) {
-                            Text("Сохранить")
+                            Text(stringResource(R.string.save_changes))
                         }
                     }
+
                     if (updatedProfileState is UiState.Loading) {
                         VerticalSpacer(8.dp)
                         Box(
@@ -406,27 +424,6 @@ fun ProfileContent(
                             CircularProgressIndicator()
                         }
                     }
-                    if (updatedProfileState is UiState.Error) {
-                        VerticalSpacer(8.dp)
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            ErrorScreen(updatedProfileState.message)
-                        }
-                    }
-                    if (updatedProfileState is UiState.Success) {
-                        VerticalSpacer(8.dp)
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.profile_updated_successfully),
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -434,28 +431,61 @@ fun ProfileContent(
 }
 
 @Composable
-fun ProfileAvatar(avatarUrl: String?) {
-    if (avatarUrl == null) {
-        Image(
-            painterResource(R.drawable.defaultprofilephoto),
-            contentDescription = "Profile Avatar",
-            modifier = Modifier
-                .size(120.dp),
-            contentScale = ContentScale.Crop
-        )
-    } else {
-        SubcomposeAsyncImage(
-            model = avatarUrl,
-            contentDescription = "Profile Avatar",
-            modifier = Modifier
-                .size(120.dp),
-            contentScale = ContentScale.Crop,
-            loading = {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+fun ProfileAvatar(
+    avatarUrl: String?,
+    isUploading: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(120.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        if (avatarUrl == null && !isUploading) {
+            Image(
+                painterResource(R.drawable.defaultprofilephoto),
+                contentDescription = stringResource(R.string.profile_avatar),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            SubcomposeAsyncImage(
+                model = avatarUrl,
+                contentDescription = stringResource(R.string.profile_avatar),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                loading = {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(40.dp))
+                    }
+                },
+                error = {
+                    Image(
+                        painterResource(R.drawable.defaultprofilephoto),
+                        contentDescription = stringResource(R.string.profile_avatar) + " Error",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
                 }
-            },
-        )
+            )
+        }
+
+        if (isUploading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.surface
+                )
+            }
+        }
     }
 }
 
@@ -502,7 +532,6 @@ fun InputTextField(
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun ProfileContentPreview() {
@@ -522,6 +551,8 @@ fun ProfileContentPreview() {
         onUpdateProfile = { _, _, _, _, _, _ -> },
         updatedProfileState = UiState.Idle(),
         onUpdateUserInfo = { _, _ -> },
-        backToEmptyState = {}
+        backToEmptyState = {},
+        onUploadImage = { _, _ -> },
+        uploadImageState = UiState.Idle()
     )
 }

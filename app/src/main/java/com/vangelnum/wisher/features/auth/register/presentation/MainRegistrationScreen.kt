@@ -19,7 +19,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,19 +42,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
+import com.vangelnum.wisher.core.presentation.SmallLoadingIndicator
+import com.vangelnum.wisher.core.presentation.SnackbarController
+import com.vangelnum.wisher.core.presentation.SnackbarEvent
+import com.vangelnum.wisher.features.auth.register.data.model.RegistrationRequest
 
 @Composable
 fun RegistrationScreen(
     onNavigateToLoginPage: () -> Unit,
     onNavigateToVerifyEmail: (email: String, password: String) -> Unit,
-    onRegisterUser: (name: String, email: String, password: String) -> Unit,
     pendingRegistrationState: UiState<String>,
-    onBackRegistrationState: () -> Unit
+    onEvent: (RegistrationEvent) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -93,7 +94,11 @@ fun RegistrationScreen(
             isPasswordValid = password.length in 8..24 && password.isNotBlank()
 
             if (isNameValid && isEmailValid && isPasswordValid) {
-                onRegisterUser(name, email, password)
+                onEvent(
+                    RegistrationEvent.OnRegisterUser(
+                        RegistrationRequest(name, email, password)
+                    )
+                )
             }
         },
         pendingRegistrationState = pendingRegistrationState
@@ -102,7 +107,7 @@ fun RegistrationScreen(
     LaunchedEffect(key1 = pendingRegistrationState) {
         if (pendingRegistrationState is UiState.Success) {
             onNavigateToVerifyEmail(email, password)
-            onBackRegistrationState()
+            onEvent(RegistrationEvent.OnBackToEmptyState)
         }
     }
 }
@@ -128,6 +133,16 @@ fun RegistrationContent(
     val focusRequesterName = remember { FocusRequester() }
     val focusRequesterEmail = remember { FocusRequester() }
     val focusRequesterPassword = remember { FocusRequester() }
+
+    LaunchedEffect(pendingRegistrationState) {
+        if (pendingRegistrationState is UiState.Error) {
+            SnackbarController.sendEvent(
+                SnackbarEvent(
+                    message = pendingRegistrationState.message
+                )
+            )
+        }
+    }
 
     Column(
         modifier = modifier
@@ -236,26 +251,16 @@ fun RegistrationContent(
             )
             if (pendingRegistrationState is UiState.Loading) {
                 Spacer(modifier = Modifier.width(16.dp))
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
-            }
-        }
-        if (pendingRegistrationState is UiState.Error) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = pendingRegistrationState.message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
+                SmallLoadingIndicator()
             }
         }
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-            Text(stringResource(R.string.already_have_account), modifier = Modifier
-                .padding(bottom = 16.dp)
-                .clickable {
-                    onNavigateToLoginPage()
-                }
+            Text(
+                stringResource(R.string.already_have_account), modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .clickable {
+                        onNavigateToLoginPage()
+                    }
             )
         }
     }

@@ -45,6 +45,9 @@ class RegisterUserViewModel @Inject constructor(
     private val _registrationUiState = MutableStateFlow<UiState<AuthResponse>>(UiState.Idle())
     val registrationUiState = _registrationUiState.asStateFlow()
 
+    private val _resendVerificationCodeUiState = MutableStateFlow<String?>(null)
+    val resendVerificationCodeUiState = _resendVerificationCodeUiState.asStateFlow()
+
     fun onEvent(event: RegistrationEvent) {
         when (event) {
             is RegistrationEvent.OnRegisterUser -> registerUser(event.user)
@@ -52,6 +55,13 @@ class RegisterUserViewModel @Inject constructor(
             is RegistrationEvent.OnUploadAvatar -> uploadAvatar(event.context, event.imageUri)
             is RegistrationEvent.OnUpdateAvatar -> updateUserAvatar(event.imageUri)
             is RegistrationEvent.OnVerifyEmail -> verifyEmail(event.email, event.verificationCode)
+            is RegistrationEvent.OnResendVerificationCode -> resendVerificationCode(event.email)
+        }
+    }
+
+    private fun resendVerificationCode(email: String) {
+        viewModelScope.launch {
+            _resendVerificationCodeUiState.value = verificationRepository.resendVerificationCode(email)
         }
     }
 

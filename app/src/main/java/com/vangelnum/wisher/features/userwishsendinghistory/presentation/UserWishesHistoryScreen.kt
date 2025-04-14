@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,8 +63,9 @@ import com.vangelnum.wisher.features.home.getwish.data.model.Wish
 @Composable
 fun UserWishesHistoryScreen(
     state: UiState<List<Wish>>,
-    onNavigateToViewHistoryScreen:(wishId: Int)-> Unit,
-    modifier: Modifier = Modifier
+    onNavigateToViewHistoryScreen: (wishId: Int) -> Unit,
+    modifier: Modifier = Modifier,
+    onEvent:(UserWishesHistoryEvent)->Unit
 ) {
     when (state) {
         is UiState.Idle -> {}
@@ -72,14 +74,14 @@ fun UserWishesHistoryScreen(
         }
 
         is UiState.Loading -> {
-            LoadingScreen("Загружаем отправленные пожелания..")
+            LoadingScreen(stringResource(R.string.loading_sent_wishes))
         }
 
         is UiState.Success -> {
             if (state.data.isEmpty()) {
                 UserWishesHistoryEmptyContent()
             } else {
-                UserWishesHistoryContent(state.data, onNavigateToViewHistoryScreen, modifier)
+                UserWishesHistoryContent(state.data, onNavigateToViewHistoryScreen, modifier, onEvent)
             }
         }
     }
@@ -93,13 +95,13 @@ fun UserWishesHistoryEmptyContent() {
         modifier = Modifier.fillMaxSize()
     ) {
         Text(
-            "Нет отправленных пожеланий",
+            stringResource(R.string.no_sent_wishes),
             style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center
         )
         Image(
             painter = painterResource(R.drawable.emptystate),
-            contentDescription = "Empty Sending Wishes"
+            contentDescription = stringResource(R.string.empty_sending_wishes)
         )
     }
 }
@@ -108,7 +110,8 @@ fun UserWishesHistoryEmptyContent() {
 fun UserWishesHistoryContent(
     data: List<Wish>,
     onNavigateToViewHistoryScreen: (wishId: Int) -> Unit,
-    modifier: Modifier
+    modifier: Modifier,
+    onEvent:(UserWishesHistoryEvent)->Unit
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -117,18 +120,24 @@ fun UserWishesHistoryContent(
     ) {
         item {
             Text(
-                "История отправленных пожеланий",
+                stringResource(R.string.sent_wishes_history),
                 style = MaterialTheme.typography.headlineMedium,
             )
         }
-        items(data) { wish ->
-            WishHistoryCard(wish = wish, onNavigateToViewHistoryScreen)
+        itemsIndexed(data.reversed()) { index, wish ->
+            val reversedIndex = data.size - index
+            WishHistoryCard(wish = wish, index = reversedIndex, onNavigateToViewHistoryScreen, onEvent)
         }
     }
 }
 
 @Composable
-fun WishHistoryCard(wish: Wish, onNavigateToViewHistoryScreen: (wishId: Int) -> Unit) {
+fun WishHistoryCard(
+    wish: Wish,
+    index: Int,
+    onNavigateToViewHistoryScreen: (wishId: Int) -> Unit,
+    onEvent:(UserWishesHistoryEvent)->Unit
+) {
     var isFullScreenImageVisible by remember { mutableStateOf(false) }
     var textHeightPx by remember { mutableIntStateOf(0) }
     val density = LocalContext.current.resources.displayMetrics.density
@@ -158,27 +167,20 @@ fun WishHistoryCard(wish: Wish, onNavigateToViewHistoryScreen: (wishId: Int) -> 
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Поздравление #${wish.id}",
+                    text = stringResource(R.string.wish_number, index),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 8.dp)
                 )
-                Row {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            painter = painterResource(R.drawable.baseline_delete_24),
-                            contentDescription = "delete"
-                        )
-                    }
-                    IconButton(onClick = {}) {
-                        Icon(
-                            painter = painterResource(R.drawable.baseline_edit_24),
-                            contentDescription = "edit"
-                        )
-                    }
-
+                IconButton(onClick = {
+                    onEvent(UserWishesHistoryEvent.OnDeleteWish(wish.id))
+                }) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_delete_24),
+                        contentDescription = stringResource(R.string.delete)
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -212,7 +214,7 @@ fun WishHistoryCard(wish: Wish, onNavigateToViewHistoryScreen: (wishId: Int) -> 
                     ) {
                         SubcomposeAsyncImage(
                             model = wish.image,
-                            contentDescription = "Wish Image",
+                            contentDescription = stringResource(R.string.wish_image),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clickable {
@@ -220,7 +222,7 @@ fun WishHistoryCard(wish: Wish, onNavigateToViewHistoryScreen: (wishId: Int) -> 
                                 },
                             contentScale = ContentScale.Crop,
                             loading = {
-                                LoadingScreen("Загрузка изображения")
+                                LoadingScreen(stringResource(R.string.loading_image))
                             }
                         )
                         IconButton(onClick = {
@@ -228,7 +230,7 @@ fun WishHistoryCard(wish: Wish, onNavigateToViewHistoryScreen: (wishId: Int) -> 
                         }) {
                             Icon(
                                 painter = painterResource(R.drawable.baseline_open_in_full_24),
-                                contentDescription = "open in full"
+                                contentDescription = stringResource(R.string.open_in_full)
                             )
                         }
                     }
@@ -245,9 +247,9 @@ fun WishHistoryCard(wish: Wish, onNavigateToViewHistoryScreen: (wishId: Int) -> 
             ) {
                 WishDetailItem(
                     text = if (wish.maxViewers == null || wish.maxViewers == 0) {
-                        "Ограничение на просмотр не установлено"
+                        stringResource(R.string.no_view_limit)
                     } else {
-                        "Ограничение на просмотры: ${wish.maxViewers}"
+                        stringResource(R.string.view_limit, wish.maxViewers)
                     },
                     iconResId = R.drawable.baseline_remove_red_eye_24,
                     modifier = Modifier.weight(1f)
@@ -255,9 +257,9 @@ fun WishHistoryCard(wish: Wish, onNavigateToViewHistoryScreen: (wishId: Int) -> 
 
                 WishDetailItem(
                     text = if (wish.isBlurred) {
-                        "Пожелание заблюрено"
+                        stringResource(R.string.wish_blurred)
                     } else {
-                        "Пожелание не заблюрено"
+                        stringResource(R.string.wish_not_blurred)
                     },
                     iconResId = R.drawable.baseline_blur_on_24,
                     modifier = Modifier.weight(1f)
@@ -273,13 +275,13 @@ fun WishHistoryCard(wish: Wish, onNavigateToViewHistoryScreen: (wishId: Int) -> 
                     .height(IntrinsicSize.Min)
             ) {
                 WishDetailItem(
-                    text = "Дата пожелания ${wish.wishDate}",
+                    text = stringResource(R.string.wish_date_is, wish.wishDate),
                     iconResId = R.drawable.baseline_calendar_month_24,
                     modifier = Modifier.weight(1f)
                 )
 
                 WishDetailItem(
-                    text = "Дата открытия ${wish.openDate}",
+                    text = stringResource(R.string.open_date_is, wish.openDate),
                     iconResId = R.drawable.baseline_calendar_month_24,
                     modifier = Modifier.weight(1f)
                 )
@@ -294,7 +296,7 @@ fun WishHistoryCard(wish: Wish, onNavigateToViewHistoryScreen: (wishId: Int) -> 
                     .fillMaxWidth()
                     .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
             ) {
-                Text("История просмотров")
+                Text(stringResource(R.string.view_history))
             }
         }
     }
@@ -322,7 +324,7 @@ fun FullScreenImageDialog(imageUrl: String, onDismissRequest: () -> Unit) {
         ) {
             SubcomposeAsyncImage(
                 model = imageUrl,
-                contentDescription = "Full Screen Wish Image",
+                contentDescription = stringResource(R.string.full_screen_wish_image),
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(RoundedCornerShape(16.dp))
@@ -340,7 +342,7 @@ fun FullScreenImageDialog(imageUrl: String, onDismissRequest: () -> Unit) {
             ) {
                 Icon(
                     painter = painterResource(R.drawable.baseline_close_24),
-                    contentDescription = "Close",
+                    contentDescription = stringResource(R.string.close),
                     tint = Color.White
                 )
             }
@@ -379,7 +381,7 @@ fun UserWishesHistoryContentPreview() {
     val mockData = listOf(
         Wish(
             id = 1,
-            text = "С днем рождения! Желаю всего наилучшего! Очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень very very",
+            text = "С днем рождения! Желаю всего наилучшего! Очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень очень very very",
             user = User(
                 avatarUrl = null,
                 email = "john.doe@example.com",
@@ -423,8 +425,9 @@ fun UserWishesHistoryContentPreview() {
     MaterialTheme {
         UserWishesHistoryContent(
             data = mockData,
-            onNavigateToViewHistoryScreen = {  },
-            modifier = Modifier
+            onNavigateToViewHistoryScreen = { },
+            modifier = Modifier,
+            onEvent = {}
         )
     }
 }

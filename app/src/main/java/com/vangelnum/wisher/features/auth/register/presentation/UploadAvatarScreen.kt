@@ -47,7 +47,7 @@ fun UploadAvatarScreen(
     registrationState: UiState<AuthResponse>,
     uploadAvatarState: UiState<String>,
     updateAvatarState: UiState<AuthResponse>,
-    onNavigateToHome: () -> Unit,
+    onNavigateToBunsScreen: () -> Unit,
     onEvent: (RegistrationEvent) -> Unit,
     onUpdateUserInfo: () -> Unit
 ) {
@@ -144,9 +144,9 @@ fun UploadAvatarScreen(
                 onClick = {
                     if (selectedImageUri != null && uploadAvatarState is UiState.Success) {
                         onEvent(RegistrationEvent.OnUpdateAvatar(uploadAvatarState.data))
-                        onNavigateToHome()
+                        onNavigateToBunsScreen()
                     } else {
-                        onNavigateToHome()
+                        onNavigateToBunsScreen()
                     }
                     onUpdateUserInfo()
                 },
@@ -198,7 +198,7 @@ fun LoadAvatarScreenPreview() {
             registrationState = UiState.Idle(),
             uploadAvatarState = UiState.Idle(),
             updateAvatarState = UiState.Idle(),
-            onNavigateToHome = {},
+            onNavigateToBunsScreen = {},
             onEvent = {},
             onUpdateUserInfo = {}
         )

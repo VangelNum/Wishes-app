@@ -10,7 +10,7 @@
     <string name="enter_your_email">Введите ваш email</string>
     <string name="password">Пароль</string>
     <string name="enter_password">Введите пароль</string>
-    <string name="back">Вернуться</string>
+    <string name="back_button">Вернуться</string>
     <string name="login">Авторизация</string>
     <string name="login_to_countinue">Войдите чтобы пользоваться приложением</string>
     <string name="already_have_account">Уже есть аккаунт? Войти</string>
@@ -29,7 +29,7 @@
     <string name="password_invalid">Пароль должен содержать от 8 до 24 символов</string>
     <string name="another_date">Другая дата</string>
     <string name="loading_holidays">Загружаем праздники</string>
-    <string name="try_again">Попробовать еще раз</string>
+    <string name="retry_button">Попробовать еще раз</string>
     <string name="holidays">Праздники</string>
     <string name="another_holiday">Другой повод</string>
     <string name="profile_update_error">Не удалось обновить профиль. Пожалуйста, попробуйте еще раз.</string>
@@ -39,7 +39,174 @@
     <string name="new_password">Новый пароль</string>
     <string name="enter_new_password">Введите новый пароль</string>
     <string name="loading">Загрузка…</string>
-    <string name="unknown_error">Неизвестная ошибка</string>
     <string name="wish_key_not_setup">Ключ не установлен</string>
     <string name="refresh">Обновить</string>
+
+    <string name="back_to_home">Вернуться на главный экран</string>
+    <string name="unknown_error">Произошла неизвестная ошибка.</string>
+    <string name="info_icon_description">Информация</string>
+
+    <!-- Send Wish Screen States -->
+    <string name="sending_wish_loading">Отправляем поздравление…</string>
+    <string name="wish_sent_success_title">Поздравление успешно отправлено!</string>
+    <string name="wish_sent_success_message">Ваше поздравление отправлено! Уникальный ключ: %1$s</string> <!-- %1$s для ключа -->
+
+    <!-- Send Wish Input Content -->
+    <string name="image_section_title">Изображение</string>
+    <string name="send_button">Отправить</string>
+
+    <!-- Tabs -->
+    <string name="tab_gallery">Из галереи</string>
+    <string name="tab_generate">Сгенерировать</string>
+
+    <!-- Wish Text Input -->
+    <string name="generating_text_loading">Генерируем текст поздравления…</string>
+    <string name="wish_text_placeholder">Введите текст поздравления</string>
+    <string name="regenerate_text_button">Улучшить поздравление</string>
+    <string name="error_generating_text">Ошибка генерации текста.</string>
+
+    <!-- Image From Gallery -->
+    <string name="selected_image_description">Выбранное изображение</string>
+    <string name="select_other_image_button">Выбрать другое изображение</string>
+    <string name="uploading_image_loading">Загружаем изображение на сервер…</string>
+    <string name="error_uploading_image">Ошибка загрузки изображения.</string>
+    <string name="select_image_button">Выбрать изображение</string>
+    <string name="error_preparing_upload">Ошибка подготовки к загрузке.</string>
+    <string name="preparing_upload_loading">Подготовка к загрузке…</string>
+    <string name="error_loading_image">Ошибка загрузки изображения.</string>
+
+    <!-- Generated Image -->
+    <string name="loading_models">Загрузка стилей…</string>
+    <string name="error_loading_models">Ошибка загрузки стилей.</string>
+    <string name="no_models_available">Стили для генерации недоступны.</string>
+    <string name="generate_image_button">Сгенерировать изображение</string>
+    <string name="generating_image_loading">Генерируем изображение…</string>
+    <string name="error_generating_image">Ошибка генерации изображения.</string>
+    <string name="generated_image_description">Сгенерированное изображение</string>
+    <string name="loading_generated_image">Успешно сгенерировано! Загружаем…</string>
+    <string name="generate_again_button">Сгенерировать еще раз</string>
+
+    <!-- Additional Settings -->
+    <string name="additional_settings_title">Дополнительные настройки</string>
+    <string name="collapse_settings">Свернуть настройки</string>
+    <string name="expand_settings">Развернуть настройки</string>
+    <string name="blur_image_setting">Заблюрить изображение</string>
+    <string name="max_views_label">Максимальное количество просмотров</string>
+    <string name="max_views_placeholder">0 - без ограничений</string>
+    <string name="max_views_tooltip">Количество людей, которые смогут открыть поздравление.</string>
+    <string name="open_date_label">Дата открытия</string>
+    <string name="calendar_icon_description">Выбрать дату</string>
+    <string name="open_date_tooltip">Дата, когда получатель сможет открыть поздравление.</string>
+
+    <string name="edit_profile">Редактировать профиль</string>
+    <string name="close_profile_editing">Закрыть редактирование профиля</string>
+    <string name="profile_editing">Редактирование профиля</string>
+    <string name="edit_avatar">Редактировать аватар</string>
+
+    <string name="enter_new_password_optional">Введите новый пароль (необязательно)</string>
+    <string name="password_invalid_length">Пароль должен содержать от 8 до 24 символов</string>
+
+    <string name="enter_current_password_to_save">Введите текущий пароль (обязательно)</string>
+    <string name="current_password_required">Текущий пароль обязателен</string>
+
+    <string name="toggle_password_visibility">Переключить видимость пароля</string>
+    <string name="profile_avatar">Аватар профиля</string>
+
+    <string name="save_changes">Сохранить изменения</string>
+
+    <string name="avatar_uploaded_successfully">Аватар успешно загружен</string>
+    <string name="avatar_upload_error">Ошибка загрузки аватара: %s</string>
+
+    <string name="verify_email_message">На вашу почту %1$s был отправлен код</string>
+    <string name="verify_email_enter_code">Введите его ниже</string>
+    <string name="resend_verification_code">Отправить код повторно</string>
+    <string name="resend_verification_code_timer">Отправить код повторно через %1$dс</string>
+    <string name="verifying_code_loading">Проверяем код..</string>
+
+    <string name="loading_dates">Загружаем даты</string>
+    <string name="key_not_found">Ключ не найден</string>
+    <string name="no_wishes">Нет пожеланий</string>
+    <string name="empty_wish_list">Список пожеланий пуст</string>
+    <string name="wish_open_date_message">Можно будет открыть с %1$s</string>
+    <string name="future_wish">Будущее пожелание</string>
+    <string name="enter_key_placeholder">Введите ключ</string>
+    <string name="search_icon">Иконка поиска</string>
+    <string name="clear_text_button">Очистить текст</string>
+
+    <string name="loading_wish">Загружаем пожелания</string>
+
+    <string name="close_drawer">Закрыть меню</string>
+    <string name="profile">Профиль</string>
+    <string name="sent_wishes">Отправленные пожелания</string>
+    <string name="viewed_keys">Просмотренные ключи</string>
+    <string name="widgets">Виджеты</string>
+    <string name="default_avatar">Стандартный аватар</string>
+    <string name="user_avatar">Аватар пользователя</string>
+    <string name="viewed_keys_icon">Иконка просмотренных ключей</string>
+    <string name="widgets_icon">Иконка виджетов</string>
+
+    <string name="view_history_loading_message">Загружаем историю просмотров</string>
+    <string name="view_history_empty_message">Нет просмотров</string>
+    <string name="view_history_empty_image_description">Пустые просмотры</string>
+    <string name="user_icon_description">Иконка пользователя</string>
+
+    <string name="widget_screen_title">Введите ключ для виджета</string>
+
+    <string name="regenerate_key_confirmation_dialog_title">Подтверждение смены ключа</string>
+    <string name="regenerate_key_confirmation_dialog_message">Вы уверены, что хотите изменить ключ? Ваши пожелания не удалятся. Текущий ключ станет недоступен. Пожелания станут доступны только по новому ключу.</string>
+    <string name="regenerate_key_confirmation_dialog_confirm_button">Да</string>
+    <string name="regenerate_key_confirmation_dialog_dismiss_button">Отмена</string>
+
+    <string name="loading_sent_wishes">Загружаем отправленные пожелания..</string>
+    <string name="no_sent_wishes">Нет отправленных пожеланий</string>
+    <string name="empty_sending_wishes">Пустые отправленные пожелания</string>
+    <string name="sent_wishes_history">История отправленных пожеланий</string>
+    <string name="wish_number">Поздравление №%1$d</string>
+    <string name="delete">Удалить</string>
+    <string name="edit">Редактировать</string>
+    <string name="wish_image">Изображение к пожеланию</string>
+    <string name="loading_image">Загрузка изображения</string>
+    <string name="open_in_full">Открыть на весь экран</string>
+    <string name="no_view_limit">Ограничение на просмотр не установлено</string>
+    <string name="view_limit">Ограничение на просмотры: %1$d</string>
+    <string name="wish_blurred">Пожелание заблюрено</string>
+    <string name="wish_not_blurred">Пожелание не заблюрено</string>
+    <string name="wish_date_is">Дата пожелания %1$s</string>
+    <string name="open_date_is">Дата открытия %1$s</string>
+    <string name="view_history">История просмотров</string>
+    <string name="full_screen_wish_image">Изображение пожелания на весь экран</string>
+    <string name="close">Закрыть</string>
+
+    <string name="key_logs_history_error_message">Ошибка загрузки истории просмотров ключей</string>
+    <string name="key_logs_history_loading_message">Загружаем историю просмотров ключей</string>
+    <string name="key_logs_history_empty_list">Список просмотренных ключей пуст</string>
+    <string name="key_logs_history_empty_image_description">Пусто</string>
+    <string name="key_logs_history_title">История просмотров ключей</string>
+    <string name="key_logs_history_show_duplicates">Показывать дубликаты</string>
+    <string name="key_logs_history_viewed_at">Просмотрено: %1$s (UTC+0)</string>
+    <string name="key_logs_history_search_icon_description">Иконка поиска ключа</string>
+
+    <string name="success_wish_created_title">Пожелание успешно создано!</string>
+    <string name="success_wish_created_instruction">Скопируйте ключ и поделитесь им, чтобы другие смогли увидеть ваше пожелание.</string>
+    <string name="key_copied_message">Ключ скопирован</string>
+    <string name="copy_key_description">Скопировать</string>
+    <string name="share_key_intent_title">Поделиться ключом</string>
+    <string name="share_key_description">Поделиться</string>
+    <string name="navigate_to_home_screen_button">На главную</string>
+
+    <string name="not_enough_coins">Недостаточно монет</string>
+
+    <string name="buns_info">В честь успешной регистрации мы дарим вам 100 монет и 5 бесплатных пожеланий</string>
+    <string name="thanks">Спасибо!</string>
+
+    <string name="widget_settings_title">Настройки виджета</string>
+    <string name="widget_screen_instruction">Введите ключ для виджета. Этот ключ будет использоваться для получения и отображения данных. В виджете отображается последнее доступное отправленное пожелание</string>
+    <string name="widget_screen_key_label">Ключ виджета</string>
+    <string name="widget_screen_save_key_button">Сохранить ключ и обновить виджеты</string>
+    <string name="widget_screen_add_widget_button">Добавить виджет на главный экран</string>
+    <string name="widget_screen_update_widget_button">Принудительное фоновое обновление</string>
+    <string name="widget_screen_saved_key_title">Текущий сохраненный ключ:</string>
+
+    <string name="widget_screen_pin_widget_error">Добавление виджета не поддерживается</string>
+
 </resources>

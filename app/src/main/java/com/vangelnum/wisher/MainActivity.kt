@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +33,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.vangelnum.wisher.core.presentation.ObserveAsEvents
+import com.vangelnum.wisher.core.presentation.SnackbarController
 import com.vangelnum.wisher.features.auth.login.presentation.LoginEvent
 import com.vangelnum.wisher.features.auth.login.presentation.LoginViewModel
 import com.vangelnum.wisher.features.auth.register.presentation.RegisterUserViewModel
@@ -50,6 +54,24 @@ class MainActivity : ComponentActivity() {
             val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
             val snackbarHostState = remember { SnackbarHostState() }
             val scope = rememberCoroutineScope()
+            ObserveAsEvents(
+                flow = SnackbarController.events,
+                snackbarHostState
+            ) { event ->
+                scope.launch {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
+                    val result = snackbarHostState.showSnackbar(
+                        message = event.message,
+                        actionLabel = event.action?.name,
+                        duration = SnackbarDuration.Short
+                    )
+
+                    if (result == SnackbarResult.ActionPerformed) {
+                        event.action?.action?.invoke()
+                    }
+                }
+            }
             val loginViewModel: LoginViewModel = hiltViewModel()
             val loginState = loginViewModel.loginUiState.collectAsStateWithLifecycle().value
             val registrationViewModel: RegisterUserViewModel = hiltViewModel()
@@ -154,12 +176,7 @@ class MainActivity : ComponentActivity() {
                                 loginViewModel = loginViewModel,
                                 loginState = loginState,
                                 registrationViewModel = registrationViewModel,
-                                registrationState = registrationState,
-                                showSnackbar = { message ->
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(message)
-                                    }
-                                }
+                                registrationState = registrationState
                             )
                         }
                     }
