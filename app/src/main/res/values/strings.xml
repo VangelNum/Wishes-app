@@ -21,7 +21,7 @@
     <string name="send_wish">Send wish</string>
     <string name="get_wishes">Open wish</string>
     <string name="loading_current_date">Loading dates in a month</string>
-    <string name="copied">Code copied</string>
+    <string name="copied">Key copied</string>
     <string name="continue_string">Continue</string>
     <string name="name_invalid">Name  must be 2 to 24 characters long</string>
     <string name="email_invalid">Invalid email format</string>
@@ -207,4 +207,8 @@
     <string name="widget_screen_update_widget_button">Force Background Update</string>
     <string name="widget_screen_saved_key_title">Currently Saved Key:</string>
     <string name="widget_screen_pin_widget_error">Widget pinning not supported</string>
+
+    <string name="show_past_wishes">Show the past</string>
+
+    <string name="shop">Shop</string>
 </resources>

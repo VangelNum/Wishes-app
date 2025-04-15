@@ -47,6 +47,7 @@ import com.vangelnum.wisher.features.keylogshistory.presentation.KeyLogsHistoryS
 import com.vangelnum.wisher.features.keylogshistory.presentation.KeyLogsHistoryViewModel
 import com.vangelnum.wisher.features.profile.presentation.ProfileScreen
 import com.vangelnum.wisher.features.profile.presentation.UpdateProfileViewModel
+import com.vangelnum.wisher.features.shop.presentation.ShopScreen
 import com.vangelnum.wisher.features.userwishsendinghistory.presentation.UserWishesHistoryScreen
 import com.vangelnum.wisher.features.userwishsendinghistory.presentation.UserWishesHistoryViewModel
 import com.vangelnum.wisher.features.userwishviewhistory.presentation.ViewHistoryEvent
@@ -433,8 +434,13 @@ fun AppNavHost(
         }
         composable<BunsPage> {
             BunsScreen {
-                navController.navigate(HomePage())
+                navController.navigate(HomePage()) {
+                    popUpTo(0)
+                }
             }
+        }
+        composable<ShopPage> {
+            ShopScreen()
         }
     }
 }

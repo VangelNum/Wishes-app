@@ -58,3 +58,6 @@ object WidgetPage
 
 @Serializable
 object BunsPage
+
+@Serializable
+object ShopPage

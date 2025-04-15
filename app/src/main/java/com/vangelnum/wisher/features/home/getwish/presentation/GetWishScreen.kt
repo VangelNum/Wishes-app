@@ -1,11 +1,13 @@
 package com.vangelnum.wisher.features.home.getwish.presentation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,8 +33,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
@@ -85,14 +89,12 @@ fun GetWishScreen(
     var selectedWishId by remember { mutableStateOf<Int?>(null) }
     var bottomSheetVisible by remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState()
-
-    var previousWishKey by remember { mutableStateOf(wishKey.value) }
+    var showPastWishes by remember { mutableStateOf(false) }
 
     LaunchedEffect(wishKey.value) {
-        if (wishKey.value.isNotBlank() && wishKey.value != previousWishKey) {
+        if (wishKey.value.isNotBlank()) {
             delay(500L)
             onEvent(GetWishEvent.OnGetWishesDates(wishKey.value))
-            previousWishKey = wishKey.value
         }
     }
 
@@ -137,6 +139,22 @@ fun GetWishScreen(
                     wishKey.value = it
                 })
             }
+            if (wishesDateState is UiState.Success) {
+                AnimatedVisibility(visible = wishesDateState.data.isNotEmpty()) {
+                    OutlinedCard(
+                        modifier = Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp),
+                        shape = CircleShape
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(8.dp).padding(start = 8.dp, end = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(stringResource(R.string.show_past_wishes))
+                            Switch(
+                                checked = showPastWishes,
+                                onCheckedChange = { showPastWishes = it }
+                            )
+                        }
+                    }
+                }
+            }
             when (wishesDateState) {
                 is UiState.Loading -> {
                     LoadingScreen(
@@ -147,8 +165,17 @@ fun GetWishScreen(
                 }
 
                 is UiState.Success -> {
+                    val wishesToShow = remember(wishesDateState.data, currentDate, showPastWishes) {
+                        if (!showPastWishes) {
+                            wishesDateState.data.filter {
+                                LocalDate.parse(it.openDate).isAfter(currentDate.minusDays(1))
+                            }
+                        } else {
+                            wishesDateState.data
+                        }
+                    }
                     WishDatesContent(
-                        wishesDateState,
+                        wishesDateState = UiState.Success(wishesToShow), // Use filtered list
                         currentDate,
                         scaffoldState,
                         wishKey.value,
@@ -237,14 +264,17 @@ fun WishDatesContent(
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     }
-                    items(wishesForMonth) { wish ->
+                    items(
+                        items = wishesForMonth,
+                        key =  { it.id }
+                    ) { wish ->
                         DateWishItem(wish, currentDate, wishKey, onOpenWish = { key, id ->
                             onSelectedWishId(id)
                             onChangeBottomSheetVisible(true)
                             scope.launch {
                                 scaffoldState.bottomSheetState.expand()
                             }
-                        })
+                        }, modifier = Modifier.animateItem())
                     }
                 }
             }
@@ -257,7 +287,8 @@ fun DateWishItem(
     wishInfo: WishDatesInfo,
     currentDate: LocalDate,
     key: String,
-    onOpenWish: (key: String, id: Int) -> Unit
+    onOpenWish: (key: String, id: Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val parsedWishDate = LocalDate.parse(wishInfo.wishDate)
     val parsedOpenDate = LocalDate.parse(wishInfo.openDate)
@@ -273,7 +304,7 @@ fun DateWishItem(
             containerColor = if (isFuture) MaterialTheme.colorScheme.surfaceVariant else generateLightColor(),
         ),
         shape = RoundedCornerShape(10.dp),
-        modifier = Modifier
+        modifier = modifier
             .aspectRatio(1f)
             .clickable {
                 if (isFuture) {
@@ -386,13 +417,13 @@ fun PreviewGetWishScreen() {
                     ),
                     WishDatesInfo(
                         id = 3,
-                        "2025-02-10",
-                        "2025-02-09"
+                        "2024-02-10", // Past date
+                        "2024-02-09" // Past open date
                     ),
                     WishDatesInfo(
                         id = 4,
-                        "2024-02-15",
-                        "2024-02-14"
+                        "2024-02-15", // Past date
+                        "2024-02-14" // Past open date
                     )
                 )
             ),

@@ -177,14 +177,14 @@ fun ProfileContent(
             is UiState.Success -> {
                 SnackbarController.sendEvent(SnackbarEvent(string(context, R.string.profile_updated_successfully)))
                 val finalEmail = updatedProfileState.data.email
-                val finalPassword = if (editablePassword.trim().isNotEmpty()) editablePassword.trim() else currentPassword.trim()
+                val finalPassword = editablePassword.trim().ifEmpty { currentPassword.trim() }
                 onUpdateUserInfo(finalEmail, finalPassword)
                 isEditing = false
                 backToEmptyState()
             }
 
             is UiState.Error -> {
-                SnackbarController.sendEvent(SnackbarEvent("Update error: ${updatedProfileState.message}"))
+                SnackbarController.sendEvent(SnackbarEvent(updatedProfileState.message))
                 backToEmptyState()
             }
 
@@ -264,7 +264,7 @@ fun ProfileContent(
                     .fillMaxWidth()
                     .padding(top = 8.dp)
             ) {
-                Column(modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         stringResource(R.string.profile_editing),
                         fontWeight = FontWeight.SemiBold,

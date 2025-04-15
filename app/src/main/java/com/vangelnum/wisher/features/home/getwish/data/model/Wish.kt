@@ -1,6 +1,6 @@
 package com.vangelnum.wisher.features.home.getwish.data.model
 
-import com.vangelnum.wisher.features.home.User
+import com.vangelnum.wisher.features.auth.core.model.User
 
 data class Wish(
     val id: Int,

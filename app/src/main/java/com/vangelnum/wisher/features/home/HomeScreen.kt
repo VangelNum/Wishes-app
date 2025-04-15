@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,7 +75,7 @@ fun HomeScreen(
     var showCalendarDialog by remember { mutableStateOf(false) }
     var selectedHolidayDate by remember { mutableStateOf<LocalDate?>(null) }
     var selectedTabIndex by remember { mutableIntStateOf(selectedTab ?: 0) }
-    val wishKeyUserInput = remember {
+    val wishKeyUserInput = rememberSaveable {
         mutableStateOf(keyFromHistory ?: "")
     }
     var showRegenerateConfirmationDialog by remember { mutableStateOf(false) }

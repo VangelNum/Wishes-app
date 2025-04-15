@@ -57,7 +57,7 @@ import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.ErrorScreen
 import com.vangelnum.wisher.core.presentation.LoadingScreen
-import com.vangelnum.wisher.features.home.User
+import com.vangelnum.wisher.features.auth.core.model.User
 import com.vangelnum.wisher.features.home.getwish.data.model.Wish
 
 @Composable

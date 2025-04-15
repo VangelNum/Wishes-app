@@ -96,4 +96,6 @@ dependencies {
     implementation(libs.hilt.common)
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.work.runtime.ktx)
+
+    implementation("com.yandex.android:mobileads:7.12.1")
 }

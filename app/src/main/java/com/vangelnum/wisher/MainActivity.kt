@@ -124,6 +124,12 @@ class MainActivity : ComponentActivity() {
                                     drawerState.close()
                                 }
                             },
+                            onNavigateToShop = {
+                                navController.navigate(ShopPage)
+                                scope.launch {
+                                    drawerState.close()
+                                }
+                            },
                             onExit = {
                                 loginViewModel.onEvent(LoginEvent.OnExit)
                                 scope.launch {

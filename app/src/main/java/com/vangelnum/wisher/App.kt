@@ -5,11 +5,18 @@ import android.content.Context
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.yandex.mobile.ads.common.MobileAds
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @HiltAndroidApp
 class App : Application(), Configuration.Provider {
+
+    override fun onCreate() {
+        super.onCreate()
+        MobileAds.initialize(this) {}
+    }
+
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 

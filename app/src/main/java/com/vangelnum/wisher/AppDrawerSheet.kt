@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -44,6 +45,7 @@ fun AppDrawerSheet(
     onNavigateProfileScreen: () -> Unit,
     onNavigateToKeyLogsHistory: () -> Unit,
     onNavigateToWidgets: () -> Unit,
+    onNavigateToShop: () -> Unit,
     onExit: () -> Unit
 ) {
     val view = LocalView.current
@@ -146,6 +148,19 @@ fun AppDrawerSheet(
                 )
             }
         )
+
+        NavigationDrawerItem(
+            label = { Text(text = stringResource(R.string.shop)) },
+            selected = false,
+            onClick = onNavigateToShop,
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.ShoppingCart,
+                    contentDescription = stringResource(R.string.exit)
+                )
+            }
+        )
+
         Spacer(modifier = Modifier.weight(1f))
         NavigationDrawerItem(
             label = { Text(text = stringResource(R.string.exit)) },

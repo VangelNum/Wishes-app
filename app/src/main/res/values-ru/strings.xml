@@ -22,7 +22,7 @@
     <string name="send_wish">Отправить пожелание</string>
     <string name="get_wishes">Получить пожелания</string>
     <string name="loading_current_date">Загружаем даты в месяце</string>
-    <string name="copied">Код скопирован</string>
+    <string name="copied">Ключ скопирован</string>
     <string name="continue_string">Продолжить</string>
     <string name="name_invalid">Имя должно содержать от 2 до 24 символов</string>
     <string name="email_invalid">Неверный формат электронной почты</string>
@@ -208,5 +208,9 @@
     <string name="widget_screen_saved_key_title">Текущий сохраненный ключ:</string>
 
     <string name="widget_screen_pin_widget_error">Добавление виджета не поддерживается</string>
+
+    <string name="show_past_wishes">Показать прошедшие</string>
+
+    <string name="shop">Магазин</string>
 
 </resources>

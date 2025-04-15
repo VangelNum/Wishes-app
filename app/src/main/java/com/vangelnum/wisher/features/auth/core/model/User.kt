@@ -1,4 +1,4 @@
-package com.vangelnum.wisher.features.home
+package com.vangelnum.wisher.features.auth.core.model
 
 data class User(
     val avatarUrl: String?,

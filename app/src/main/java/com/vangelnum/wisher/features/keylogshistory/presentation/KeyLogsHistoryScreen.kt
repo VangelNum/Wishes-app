@@ -39,8 +39,8 @@ import com.vangelnum.wisher.R
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.presentation.ErrorScreen
 import com.vangelnum.wisher.core.presentation.LoadingScreen
+import com.vangelnum.wisher.features.auth.core.model.User
 import com.vangelnum.wisher.features.auth.core.utils.copyKey
-import com.vangelnum.wisher.features.home.User
 import com.vangelnum.wisher.features.keylogshistory.data.model.KeyLogsHistory
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

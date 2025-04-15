@@ -1,8 +1,11 @@
 package com.vangelnum.wisher.features.widget
 
 import android.app.Activity
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Intent
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -150,8 +153,6 @@ fun WidgetScreen() {
             Text(stringResource(R.string.widget_screen_update_widget_button))
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
         AnimatedVisibility(
             visible = savedKey.value.isNotEmpty(),
             enter = fadeIn() + slideInVertically(),
@@ -202,8 +203,35 @@ fun WidgetScreen() {
 fun requestWidgetAddition(activity: Activity, scope: CoroutineScope) {
     val appWidgetManager = AppWidgetManager.getInstance(activity)
     val myProvider = ComponentName(activity, SimpleWidgetReceiver::class.java)
+
     if (appWidgetManager.isRequestPinAppWidgetSupported) {
-        appWidgetManager.requestPinAppWidget(myProvider, null, null)
+        val successIntent = Intent(activity, WidgetAddedReceiver::class.java).apply {
+            action = WidgetAddedReceiver.ACTION_WIDGET_ADDED_CALLBACK
+            component = ComponentName(activity, WidgetAddedReceiver::class.java)
+        }
+        val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+
+        val successCallback = PendingIntent.getBroadcast(
+            activity,
+            0,
+            successIntent,
+            pendingIntentFlags
+        )
+
+        try {
+            appWidgetManager.requestPinAppWidget(myProvider, null, successCallback)
+        } catch (e: SecurityException) {
+            Log.e("WidgetRequest", "SecurityException requesting pin widget", e)
+            scope.launch {
+                SnackbarController.sendEvent(SnackbarEvent("Не удалось запросить добавление виджета: ${e.localizedMessage}"))
+            }
+        } catch (e: Exception) {
+            Log.e("WidgetRequest", "Exception requesting pin widget", e)
+            scope.launch {
+                SnackbarController.sendEvent(SnackbarEvent("Ошибка при запросе добавления виджета: ${e.localizedMessage}"))
+            }
+        }
+
     } else {
         scope.launch {
             SnackbarController.sendEvent(SnackbarEvent(string(activity, R.string.widget_screen_pin_widget_error)))
