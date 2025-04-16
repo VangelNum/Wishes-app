@@ -152,7 +152,7 @@ class SendWishRepositoryImpl @Inject constructor(
             translator.translate(prompt).await()
         } catch (e: Exception) {
             e.printStackTrace()
-            throw e
+            e.message.toString()
         }
     }
 

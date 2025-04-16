@@ -212,5 +212,18 @@
     <string name="show_past_wishes">Показать прошедшие</string>
 
     <string name="shop">Магазин</string>
+    <string name="bonus">Бонусы</string>
+
+    <string name="daily_bonus_streak">Ежедневный бонусный стрик</string>
+    <string name="next_bonus">Следующий бонус: %1$s %2$s</string>
+    <string name="bonus_ready_to_claim">Бонус готов к получению!</string>
+    <string name="claim_in_hours_minutes">Получить через: %1$dч %2$dм</string>
+    <string name="claim_in_minutes">Получить через: %1$dм</string>
+    <string name="claim_reward">Получить награду</string>
+    <string name="coins">монет</string>
+    <string name="bonus_claimed_success">Бонус успешно получен! Вы получили %1$s %2$s.</string>
+    <string name="bonus_received_coins">Вы получили %1$s %2$s!</string>
+    <string name="bonus_claim_failed">Не удалось получить бонус</string>
+
 
 </resources>

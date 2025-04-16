@@ -52,9 +52,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.firebase.crashlytics.buildtools)
-    implementation(libs.androidx.cardview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -68,34 +65,24 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.converter.scalars)
 
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
-
-    implementation(libs.kotlinx.serialization.json)
-
-    implementation(libs.androidx.datastore.preferences)
-
+    implementation(libs.mobileads)
     implementation(libs.coil.compose)
     implementation(libs.coil)
+    implementation(libs.androidx.glance.material3)
+    implementation(libs.androidx.glance.appwidget)
 
-    implementation(libs.jsoup)
-    implementation(libs.translate)
-    implementation(libs.language.id)
-    implementation(libs.kotlinx.coroutines.play.services)
-
-    implementation (libs.androidx.glance.appwidget)
-    implementation (libs.androidx.glance.material3)
-
+    implementation(libs.hilt.work)
     implementation(libs.hilt.android)
     ksp(libs.dagger.compiler)
     ksp(libs.hilt.compiler)
-
-    implementation(libs.hilt.work)
     implementation(libs.hilt.common)
-    ksp(libs.androidx.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.work.runtime.ktx)
 
-    implementation("com.yandex.android:mobileads:7.12.1")
+    implementation(libs.language.id)
+    implementation(libs.translate)
+    implementation(libs.kotlinx.coroutines.play.services)
 }

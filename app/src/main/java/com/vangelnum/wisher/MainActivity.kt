@@ -125,7 +125,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             onNavigateToShop = {
-                                navController.navigate(ShopPage)
+                                navController.navigate(BonusPage)
                                 scope.launch {
                                     drawerState.close()
                                 }

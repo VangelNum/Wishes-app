@@ -1,6 +1,7 @@
 package com.vangelnum.wisher.features.auth.login.presentation
 
 import android.util.Base64
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -71,7 +72,7 @@ class LoginViewModel @Inject constructor(
                 loginRepository.refreshUserData(storedHeader)
                     .onStart {}
                     .catch { error ->
-                        println("Error refreshing user data: ${error.localizedMessage}")
+                        Log.d("RefreshUser","Error refreshing user data: ${error.localizedMessage}")
                     }
                     .collect { authResponse ->
                         _loginUiState.value = UiState.Success(authResponse)

@@ -40,7 +40,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CaretProperties
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -566,7 +565,7 @@ private fun OpenDateSetting(
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = {
-                            PlainTooltip(caretProperties = CaretProperties(24.dp, 24.dp)) {
+                            PlainTooltip {
                                 Text(stringResource(R.string.open_date_tooltip))
                             }
                         },

@@ -211,4 +211,17 @@
     <string name="show_past_wishes">Show the past</string>
 
     <string name="shop">Shop</string>
+
+    <string name="bonus">Bonuses</string>
+
+    <string name="daily_bonus_streak">Daily Bonus Streak</string>
+    <string name="next_bonus">Next Bonus: %1$s %2$s</string>
+    <string name="bonus_ready_to_claim">Bonus is ready to claim!</string>
+    <string name="claim_in_hours_minutes">Claim in: %1$dh %2$dm</string>
+    <string name="claim_in_minutes">Claim in: %1$dm</string>
+    <string name="claim_reward">Claim Reward</string>
+    <string name="coins">coins</string>
+    <string name="bonus_claimed_success">Bonus claimed successfully! You received %1$s %2$s.</string>
+    <string name="bonus_received_coins">You received %1$s %2$s!</string>
+    <string name="bonus_claim_failed">Failed to claim bonus</string>
 </resources>

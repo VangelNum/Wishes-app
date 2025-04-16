@@ -32,6 +32,9 @@ import com.vangelnum.wisher.features.auth.register.presentation.UploadAvatarScre
 import com.vangelnum.wisher.features.auth.register.presentation.email_verification.OtpAction
 import com.vangelnum.wisher.features.auth.register.presentation.email_verification.OtpViewModel
 import com.vangelnum.wisher.features.auth.register.presentation.email_verification.VerifyEmailScreen
+import com.vangelnum.wisher.features.bonus.presentation.BonusEvent
+import com.vangelnum.wisher.features.bonus.presentation.BonusScreen
+import com.vangelnum.wisher.features.bonus.presentation.BonusViewModel
 import com.vangelnum.wisher.features.buns.presentation.BunsScreen
 import com.vangelnum.wisher.features.home.HomeScreen
 import com.vangelnum.wisher.features.home.getwish.presentation.GetWishViewModel
@@ -47,7 +50,6 @@ import com.vangelnum.wisher.features.keylogshistory.presentation.KeyLogsHistoryS
 import com.vangelnum.wisher.features.keylogshistory.presentation.KeyLogsHistoryViewModel
 import com.vangelnum.wisher.features.profile.presentation.ProfileScreen
 import com.vangelnum.wisher.features.profile.presentation.UpdateProfileViewModel
-import com.vangelnum.wisher.features.shop.presentation.ShopScreen
 import com.vangelnum.wisher.features.userwishsendinghistory.presentation.UserWishesHistoryScreen
 import com.vangelnum.wisher.features.userwishsendinghistory.presentation.UserWishesHistoryViewModel
 import com.vangelnum.wisher.features.userwishviewhistory.presentation.ViewHistoryEvent
@@ -168,7 +170,7 @@ fun AppNavHost(
                         )
                     },
                     updateProfileState = updateProfileState,
-                    onUploadImage = { imageUri, context->
+                    onUploadImage = { imageUri, context ->
                         updateProfileViewModel.uploadAvatar(imageUri, context)
                     },
                     uploadImageState = uploadImageState,
@@ -301,7 +303,7 @@ fun AppNavHost(
                         popUpTo(0)
                     }
                 },
-                onEvent = { event->
+                onEvent = { event ->
                     sendWishViewModel.onEvent(event)
                 },
                 refreshUserInfo = {
@@ -391,7 +393,7 @@ fun AppNavHost(
                     navController.navigate(ViewHistoryPage(wishId))
                 },
                 modifier = Modifier.fillMaxSize(),
-                onEvent = { event->
+                onEvent = { event ->
                     userWishesHistoryViewModel.onEvent(event)
                 }
             )
@@ -439,8 +441,21 @@ fun AppNavHost(
                 }
             }
         }
-        composable<ShopPage> {
-            ShopScreen()
+        composable<BonusPage> {
+            val bonusViewModel = hiltViewModel<BonusViewModel>()
+            val bonusUiState = bonusViewModel.bonusUiState.collectAsStateWithLifecycle().value
+            val claimUiState = bonusViewModel.claimBonusUiState.collectAsStateWithLifecycle().value
+            BonusScreen(
+                bonusUiState = bonusUiState,
+                claimUiState = claimUiState,
+                onClaimBonus = {
+                    bonusViewModel.onEvent(BonusEvent.OnClaimBonus)
+                    loginViewModel.onEvent(LoginEvent.OnRefreshUser)
+                },
+                onGetBonusInfo = {
+                    bonusViewModel.onEvent(BonusEvent.OnGetBonusInfo)
+                }
+            )
         }
     }
 }

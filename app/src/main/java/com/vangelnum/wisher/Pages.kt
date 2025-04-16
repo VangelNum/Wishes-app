@@ -60,4 +60,4 @@ object WidgetPage
 object BunsPage
 
 @Serializable
-object ShopPage
+object BonusPage
