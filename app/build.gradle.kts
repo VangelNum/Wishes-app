@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.vangelnum.wisher"
+    namespace = "com.vangelnum.wishes"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.vangelnum.wisher"
+        applicationId = "com.vangelnum.wishes"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

@@ -237,4 +237,9 @@
 
     <string name="share_wish_title">Поделиться пожеланием</string>
     <string name="share_the_wish">Поделиться созданным пожеланием</string>
+
+    <string name="app_info_text">\n\nНайти другие мои пожелания можно по ключу %1$s в приложении https://play.google.com/store/apps/details?id=com.vangelnum.wishes. В нем также можно создать свое пожелание</string>
+    <string name="share_image_download_failed">Не удалось скачать изображение для отправки</string>
+    <string name="share_image_preparation_error">Ошибка подготовки изображения: %1$s</string>
+    <string name="share_no_app_found">Не найдено приложение для отправки контента</string>
 </resources>

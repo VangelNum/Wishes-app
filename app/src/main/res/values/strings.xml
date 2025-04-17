@@ -238,4 +238,9 @@
     <string name="share_wish_title">Share wish title</string>
 
     <string name="share_the_wish">Share the wish you created</string>
+
+    <string name="app_info_text">\n\nYou can find more of my wishes by key %1$s in the app https://play.google.com/store/apps/details?id=com.vangelnum.wishes. You can also create your own wish there.</string>
+    <string name="share_image_download_failed">Failed to download image for sharing</string>
+    <string name="share_image_preparation_error">Error preparing image: %1$s</string>
+    <string name="share_no_app_found">No application found to handle content sharing</string>
 </resources>
