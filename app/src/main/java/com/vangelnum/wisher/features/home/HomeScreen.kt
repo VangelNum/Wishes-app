@@ -69,7 +69,8 @@ fun HomeScreen(
     onRegenerateKey: () -> Unit,
     onGetWishEvent: (GetWishEvent) -> Unit,
     keyFromHistory: String?,
-    selectedTab: Int?
+    selectedTab: Int?,
+    wishKeyFromWidget: String?
 ) {
     val context = LocalContext.current
     var showCalendarDialog by remember { mutableStateOf(false) }
@@ -148,7 +149,8 @@ fun HomeScreen(
                 currentDateState = currentDateUiState,
                 wishState = wishState,
                 wishKey = wishKeyUserInput,
-                onEvent = onGetWishEvent
+                onEvent = onGetWishEvent,
+                wishKeyFromWidget = wishKeyFromWidget
             )
         }
     }
@@ -304,7 +306,8 @@ fun PreviewHomeScreen() {
             onRegenerateKey = {},
             onGetWishEvent = {},
             keyFromHistory = null,
-            selectedTab = 0
+            selectedTab = 0,
+            wishKeyFromWidget = ""
         )
     }
 }

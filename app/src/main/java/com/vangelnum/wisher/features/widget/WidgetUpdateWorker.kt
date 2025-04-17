@@ -79,6 +79,7 @@ class WidgetUpdateWorker @AssistedInject constructor(
                             glanceId
                         ) { prefs ->
                             prefs.toMutablePreferences().apply {
+                                this[WidgetKeys.WISH_KEY] = wishKey
                                 this[WidgetKeys.WISH_INFO] = wish.text
                                 this[WidgetKeys.WISH_SENDER] = wish.user.name
                                 this[WidgetKeys.WISH_IMAGE] = wish.image

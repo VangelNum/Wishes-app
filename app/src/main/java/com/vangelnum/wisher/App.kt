@@ -11,14 +11,13 @@ import javax.inject.Inject
 
 @HiltAndroidApp
 class App : Application(), Configuration.Provider {
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
     override fun onCreate() {
         super.onCreate()
         MobileAds.initialize(this) {}
     }
-
-    @Inject
-    lateinit var workerFactory: HiltWorkerFactory
 
     override fun getWorkManagerConfiguration(): Configuration {
         return Configuration.Builder()

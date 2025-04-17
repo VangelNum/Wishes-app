@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
+        val wishKeyFromWidget = intent.getStringExtra("wishKeyFromWidget")
         setContent {
             val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
             val snackbarHostState = remember { SnackbarHostState() }
@@ -77,6 +78,7 @@ class MainActivity : ComponentActivity() {
             val registrationViewModel: RegisterUserViewModel = hiltViewModel()
             val registrationState = registrationViewModel.registrationUiState.collectAsStateWithLifecycle().value
             val navController = rememberNavController()
+
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             var shouldShowAppBar by remember {
                 mutableStateOf(false)
@@ -182,7 +184,8 @@ class MainActivity : ComponentActivity() {
                                 loginViewModel = loginViewModel,
                                 loginState = loginState,
                                 registrationViewModel = registrationViewModel,
-                                registrationState = registrationState
+                                registrationState = registrationState,
+                                wishKeyFromWidget = wishKeyFromWidget
                             )
                         }
                     }

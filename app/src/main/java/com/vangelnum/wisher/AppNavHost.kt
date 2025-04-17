@@ -98,7 +98,8 @@ fun AppNavHost(
     loginViewModel: LoginViewModel,
     loginState: UiState<AuthResponse>,
     registrationViewModel: RegisterUserViewModel,
-    registrationState: UiState<AuthResponse>
+    registrationState: UiState<AuthResponse>,
+    wishKeyFromWidget: String?
 ) {
     NavHost(
         modifier = modifier,
@@ -134,8 +135,14 @@ fun AppNavHost(
             LoginScreen(
                 loginState = loginState,
                 onNavigateToHomeScreen = {
-                    navController.navigate(HomePage()) {
-                        popUpTo(0)
+                    if (wishKeyFromWidget.isNullOrBlank()) {
+                        navController.navigate(HomePage()) {
+                            popUpTo(0)
+                        }
+                    } else {
+                        navController.navigate(HomePage(key = wishKeyFromWidget, selectedTab = 1)) {
+                            popUpTo(0)
+                        }
                     }
                 },
                 onNavigateToRegisterScreen = {
@@ -217,7 +224,8 @@ fun AppNavHost(
                     wishesViewModel.onEvent(event)
                 },
                 keyFromHistory = args.key,
-                selectedTab = args.selectedTab
+                selectedTab = args.selectedTab,
+                wishKeyFromWidget = wishKeyFromWidget
             )
         }
         composable<UploadAvatarPage>(
@@ -445,15 +453,19 @@ fun AppNavHost(
             val bonusViewModel = hiltViewModel<BonusViewModel>()
             val bonusUiState = bonusViewModel.bonusUiState.collectAsStateWithLifecycle().value
             val claimUiState = bonusViewModel.claimBonusUiState.collectAsStateWithLifecycle().value
+            val claimAdRewardUiState = bonusViewModel.claimAdRewardUiState.collectAsStateWithLifecycle().value
             BonusScreen(
                 bonusUiState = bonusUiState,
                 claimUiState = claimUiState,
+                claimAdRewardUiState = claimAdRewardUiState,
                 onClaimBonus = {
-                    bonusViewModel.onEvent(BonusEvent.OnClaimBonus)
-                    loginViewModel.onEvent(LoginEvent.OnRefreshUser)
+                    bonusViewModel.onEvent(BonusEvent.OnClaimBonus) // claim Bonus
+                    bonusViewModel.onEvent(BonusEvent.OnBackToEmptyState) // back to empty state to not show snackbar again
+                    loginViewModel.onEvent(LoginEvent.OnRefreshUser) // refresh user info to see current coins
+                    bonusViewModel.onEvent(BonusEvent.OnGetBonusInfo) // update state about bonus info
                 },
-                onGetBonusInfo = {
-                    bonusViewModel.onEvent(BonusEvent.OnGetBonusInfo)
+                onClaimAdReward = {
+                    bonusViewModel.onEvent(BonusEvent.OnClaimAdReward)
                 }
             )
         }

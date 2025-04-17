@@ -3,6 +3,7 @@ package com.vangelnum.wisher.features.bonus.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vangelnum.wisher.core.data.UiState
+import com.vangelnum.wisher.features.bonus.data.model.AdRewardInfo
 import com.vangelnum.wisher.features.bonus.data.model.BonusInfo
 import com.vangelnum.wisher.features.bonus.data.model.ClaimBonusInfo
 import com.vangelnum.wisher.features.bonus.domain.repository.BonusRepository
@@ -23,6 +24,9 @@ class BonusViewModel @Inject constructor(
     private val _claimBonusUiState = MutableStateFlow<UiState<ClaimBonusInfo>>(UiState.Idle())
     val claimBonusUiState = _claimBonusUiState.asStateFlow()
 
+    private val _claimAdRewardUiState = MutableStateFlow<UiState<AdRewardInfo>>(UiState.Idle())
+    val claimAdRewardUiState = _claimAdRewardUiState.asStateFlow()
+
     init {
         getBonusInfo()
     }
@@ -31,7 +35,22 @@ class BonusViewModel @Inject constructor(
         when (event) {
             BonusEvent.OnClaimBonus -> claimBonus()
             BonusEvent.OnGetBonusInfo -> getBonusInfo()
+            BonusEvent.OnBackToEmptyState -> backToEmptyState()
+            BonusEvent.OnClaimAdReward -> claimAdReward()
         }
+    }
+
+    private fun claimAdReward() {
+        viewModelScope.launch {
+            bonusRepository.claimAdReward().collect { state->
+                _claimAdRewardUiState.update { state }
+            }
+        }
+    }
+
+    private fun backToEmptyState() {
+        _claimBonusUiState.value = UiState.Idle()
+        _claimAdRewardUiState.value = UiState.Idle()
     }
 
     private fun getBonusInfo() {

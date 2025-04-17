@@ -51,8 +51,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.scale
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.imageLoader
@@ -69,6 +71,7 @@ import com.vangelnum.wisher.features.widget.BlurTransformation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.Path as ComposePath
 
 @Composable
@@ -227,8 +230,8 @@ fun InteractiveBlurredImage(
         key2 = blurRadius
     ) {
         value = Pair(null, null)
-        val clearBitmap: ImageBitmap?
-        val blurredBitmap: ImageBitmap?
+        var clearBitmap: ImageBitmap? = null
+        var blurredBitmap: ImageBitmap? = null
 
         try {
             val clearRequest = ImageRequest.Builder(context)
@@ -251,23 +254,30 @@ fun InteractiveBlurredImage(
                 val blurredAndroidBitmap = withContext(Dispatchers.IO) {
                     BlurTransformation(radius = blurRadius).transform(mutableClearBitmap, Size.ORIGINAL)
                 }
-                blurredBitmap = blurredAndroidBitmap.asImageBitmap()
+
+                if (blurredAndroidBitmap.width == clearBitmap.width && blurredAndroidBitmap.height == clearBitmap.height) {
+                    blurredBitmap = blurredAndroidBitmap.asImageBitmap()
+                } else {
+                    Log.e("BlurImage", "Blurred bitmap dimensions mismatch!")
+                    val scaledBlurred = blurredAndroidBitmap.scale(clearBitmap.width, clearBitmap.height)
+                    blurredBitmap = scaledBlurred.asImageBitmap()
+                }
+
 
             } else {
-                clearBitmap = null
-                blurredBitmap = null
-                Log.d("BlurImage","Error: Could not load bitmap from drawable")
+                Log.d("BlurImage", "Error: Could not load bitmap from drawable")
             }
             value = Pair(clearBitmap, blurredBitmap)
         } catch (e: Exception) {
-            Log.d("BlurImage","Error loading/blurring image: $e")
+            Log.d("BlurImage", "Error loading/blurring image: $e")
             value = Pair(null, null)
         }
     }
 
+
     val (clearBitmap, blurredBitmap) = imageState.value
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.clip(RoundedCornerShape(32.dp))) {
         if (clearBitmap != null && blurredBitmap != null) {
             Canvas(
                 modifier = Modifier
@@ -295,36 +305,77 @@ fun InteractiveBlurredImage(
                         )
                     }
             ) {
-                val canvasWidth = size.width.toInt()
-                val canvasHeight = size.height.toInt()
-                val dstSize = IntSize(canvasWidth, canvasHeight)
+                val canvasWidth = size.width
+                val canvasHeight = size.height
+                val imageWidth = clearBitmap.width.toFloat()
+                val imageHeight = clearBitmap.height.toFloat()
 
-                drawImage(
-                    image = clearBitmap,
-                    dstSize = dstSize
-                )
+                val dstSize = IntSize(canvasWidth.roundToInt(), canvasHeight.roundToInt())
+                val dstOffset = IntOffset.Zero
 
-                drawIntoCanvas { canvas ->
-                    val paint = Paint().apply { alpha = 0.99f }
-                    canvas.saveLayer(size.toRect(), paint)
+                var srcOffset = IntOffset.Zero
+                var srcSize = IntSize(imageWidth.roundToInt(), imageHeight.roundToInt())
 
+                if (imageWidth > 0 && imageHeight > 0 && canvasWidth > 0 && canvasHeight > 0) {
+                    val canvasRatio = canvasWidth / canvasHeight
+                    val imageRatio = imageWidth / imageHeight
+
+                    val scale: Float
+                    if (imageRatio > canvasRatio) {
+                        scale = canvasHeight / imageHeight
+                        val srcWidth = (canvasWidth / scale).roundToInt()
+                        val srcOffsetX = ((imageWidth - srcWidth) / 2f).roundToInt()
+                        srcOffset = IntOffset(srcOffsetX.coerceAtLeast(0), 0)
+                        srcSize = IntSize(srcWidth.coerceAtMost(imageWidth.roundToInt()), imageHeight.roundToInt()) // Убедимся, что размер не больше исходного
+                    } else {
+                        scale = canvasWidth / imageWidth
+                        val srcHeight = (canvasHeight / scale).roundToInt()
+                        val srcOffsetY = ((imageHeight - srcHeight) / 2f).roundToInt()
+                        srcOffset = IntOffset(0, srcOffsetY.coerceAtLeast(0))
+                        srcSize = IntSize(imageWidth.roundToInt(), srcHeight.coerceAtMost(imageHeight.roundToInt())) // Убедимся, что размер не больше исходного
+                    }
+
+                }
+                if (srcSize.width > 0 && srcSize.height > 0) {
+                    // 1. Рисуем оригинальное изображение (обрезанное) как нижний слой
                     drawImage(
-                        image = blurredBitmap,
-                        dstSize = dstSize
+                        image = clearBitmap,
+                        srcOffset = srcOffset,
+                        srcSize = srcSize,
+                        dstOffset = dstOffset,
+                        dstSize = dstSize // Растягиваем выбранный кусок на весь холст
                     )
 
-                    drawPath(
-                        path = revealedPath.value,
-                        color = Color.Black,
-                        style = Stroke(
-                            width = revealStrokeWidth,
-                            cap = StrokeCap.Round,
-                            join = StrokeJoin.Round
-                        ),
-                        blendMode = BlendMode.DstOut
-                    )
+                    // 2. Рисуем размытое изображение поверх с тем же кадрированием
+                    drawIntoCanvas { canvas ->
+                        val paint = Paint().apply { alpha = 0.99f }
+                        canvas.saveLayer(size.toRect(), paint)
 
-                    canvas.restore()
+                        drawImage(
+                            image = blurredBitmap,
+                            srcOffset = srcOffset,
+                            srcSize = srcSize,
+                            dstOffset = dstOffset,
+                            dstSize = dstSize // Растягиваем тот же кусок на весь холст
+                        )
+
+                        // 3. "Стираем" размытый слой
+                        drawPath(
+                            path = revealedPath.value,
+                            color = Color.Black,
+                            style = Stroke(
+                                width = revealStrokeWidth,
+                                cap = StrokeCap.Round,
+                                join = StrokeJoin.Round
+                            ),
+                            blendMode = BlendMode.DstOut
+                        )
+
+                        canvas.restore()
+                    }
+                } else {
+                    Log.w("BlurImage", "Calculated srcSize is invalid: $srcSize. Skipping draw.")
+                    drawRect(Color.Gray)
                 }
             }
         } else if (imageState.value == Pair(null, null) && imageUrl.isNotEmpty()) {

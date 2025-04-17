@@ -3,6 +3,7 @@ package com.vangelnum.wisher.features.bonus.data.repository
 import com.vangelnum.wisher.core.data.UiState
 import com.vangelnum.wisher.core.utils.ErrorParser
 import com.vangelnum.wisher.features.bonus.data.api.BonusApi
+import com.vangelnum.wisher.features.bonus.data.model.AdRewardInfo
 import com.vangelnum.wisher.features.bonus.data.model.BonusInfo
 import com.vangelnum.wisher.features.bonus.data.model.ClaimBonusInfo
 import com.vangelnum.wisher.features.bonus.domain.repository.BonusRepository
@@ -28,6 +29,16 @@ class BonusRepositoryImpl @Inject constructor(
         emit(UiState.Loading())
         try {
             val response = api.claimDailyBonus()
+            emit(UiState.Success(response))
+        } catch (e: Exception) {
+            emit(UiState.Error(errorParser.parseError(e)))
+        }
+    }
+
+    override fun claimAdReward(): Flow<UiState<AdRewardInfo>> = flow {
+        emit(UiState.Loading())
+        try {
+            val response = api.claimAdReward()
             emit(UiState.Success(response))
         } catch (e: Exception) {
             emit(UiState.Error(errorParser.parseError(e)))

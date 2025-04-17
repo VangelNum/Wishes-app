@@ -84,12 +84,19 @@ fun GetWishScreen(
     currentDateState: UiState<DateInfo>,
     wishState: UiState<Wish>,
     wishKey: MutableState<String>,
-    onEvent: (event: GetWishEvent) -> Unit
+    onEvent: (event: GetWishEvent) -> Unit,
+    wishKeyFromWidget: String?
 ) {
     var selectedWishId by remember { mutableStateOf<Int?>(null) }
     var bottomSheetVisible by remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState()
     var showPastWishes by remember { mutableStateOf(false) }
+
+    LaunchedEffect(wishKeyFromWidget) {
+        if (!wishKeyFromWidget.isNullOrBlank() && wishKey.value.isBlank()) {
+            wishKey.value = wishKeyFromWidget
+        }
+    }
 
     LaunchedEffect(wishKey.value) {
         if (wishKey.value.isNotBlank()) {
@@ -251,8 +258,10 @@ fun WishDatesContent(
             ) {
                 groupedWishes.forEach { (yearMonth, wishesForMonth) ->
                     header {
+                        val userLocale = Locale.getDefault()
                         val monthName = LocalDate.of(yearMonth.first, yearMonth.second, 1)
-                            .format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru")))
+                            .format(DateTimeFormatter.ofPattern("LLLL yyyy", userLocale))
+
                         Text(
                             text = monthName.replaceFirstChar {
                                 if (it.isLowerCase()) it.titlecase(
@@ -442,7 +451,8 @@ fun PreviewGetWishScreen() {
             ),
             wishState = UiState.Idle(),
             wishKey = wishKey,
-            onEvent = {}
+            onEvent = {},
+            wishKeyFromWidget = ""
         )
     }
 }
@@ -471,7 +481,8 @@ fun PreviewEmptyGetWishScreen() {
             ),
             wishState = UiState.Idle(),
             wishKey = wishKey,
-            onEvent = {}
+            onEvent = {},
+            wishKeyFromWidget = ""
         )
     }
 }
@@ -500,7 +511,8 @@ fun PreviewLoadingGetWishScreen() {
             ),
             wishState = UiState.Idle(),
             wishKey = wishKey,
-            onEvent = {}
+            onEvent = {},
+            wishKeyFromWidget = ""
         )
     }
 }
@@ -529,7 +541,8 @@ fun PreviewErrorGetWishScreen() {
             ),
             wishState = UiState.Idle(),
             wishKey = wishKey,
-            onEvent = {}
+            onEvent = {},
+            wishKeyFromWidget = ""
         )
     }
 }

@@ -217,7 +217,7 @@
     <string name="daily_bonus_streak">Ежедневный бонусный стрик</string>
     <string name="next_bonus">Следующий бонус: %1$s %2$s</string>
     <string name="bonus_ready_to_claim">Бонус готов к получению!</string>
-    <string name="claim_in_hours_minutes">Получить через: %1$dч %2$dм</string>
+    <string name="claim_in_hours_minutes">Можно будет получить через: %1$dч %2$dм</string>
     <string name="claim_in_minutes">Получить через: %1$dм</string>
     <string name="claim_reward">Получить награду</string>
     <string name="coins">монет</string>
@@ -226,4 +226,12 @@
     <string name="bonus_claim_failed">Не удалось получить бонус</string>
 
 
+    <string name="ad_not_available_yet">Реклама пока недоступна. Пожалуйста, подождите немного.</string>
+    <string name="ad_reward_received">Вы получили награду: %1$d %2$s!</string>
+    <string name="ad_not_loaded">Реклама не загружена. Пожалуйста, попробуйте позже.</string>
+    <string name="watch_ad_and_get_reward">Смотреть рекламу</string>
+    <string name="ad_available_in_minute">Реклама будет доступна менее чем через минуту</string>
+    <string name="ad_loading_wait">Реклама загружается, пожалуйста, подождите...</string>
+    <string name="ad_loading">Загрузка рекламы…</string>
+    <string name="ad_available_in">Реклама будет доступна через %1$d минут %2$d секунд</string>
 </resources>

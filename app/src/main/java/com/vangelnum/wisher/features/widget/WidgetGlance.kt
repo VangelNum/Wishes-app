@@ -77,8 +77,12 @@ class WidgetGlance : GlanceAppWidget() {
                         actionStartActivity(
                             Intent(context, MainActivity::class.java).apply {
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                if (wishKey != null && wishKey.isNotBlank()) {
+                                    putExtra("wishKeyFromWidget", wishKey)
+                                }
                             }
-                        ))
+                        )
+                    )
             ) {
                 Column(
                     modifier = GlanceModifier.fillMaxSize().padding(4.dp)

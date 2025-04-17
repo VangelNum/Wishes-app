@@ -224,4 +224,15 @@
     <string name="bonus_claimed_success">Bonus claimed successfully! You received %1$s %2$s.</string>
     <string name="bonus_received_coins">You received %1$s %2$s!</string>
     <string name="bonus_claim_failed">Failed to claim bonus</string>
+
+
+    <string name="ad_not_available_yet">Ad is not available yet. Please wait a moment.</string>
+    <string name="ad_reward_received">You received a reward: %1$d %2$s!</string>
+    <string name="ad_not_loaded">Ad is not loaded. Please try again later.</string>
+    <string name="watch_ad_and_get_reward">Watch Ad</string>
+    <string name="ad_available_in_minute">Ad available in less than a minute</string>
+    <string name="ad_loading_wait">Ad is loading, please wait…</string>
+    <string name="ad_loading">Loading ad…</string>
+
+    <string name="ad_available_in">Ad available in %1$d minutes %2$d seconds</string>
 </resources>
