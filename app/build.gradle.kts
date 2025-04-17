@@ -83,7 +83,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.work.runtime.ktx)
 
-    implementation(libs.language.id)
-    implementation(libs.translate)
     implementation(libs.kotlinx.coroutines.play.services)
 }

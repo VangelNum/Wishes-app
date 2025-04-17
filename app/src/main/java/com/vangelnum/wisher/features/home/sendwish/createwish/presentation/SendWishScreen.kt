@@ -132,10 +132,11 @@ fun SendWishScreen(
             SuccessSendWishContent(
                 modifier = modifier,
                 key = key,
+                wishImage = state.data.image,
+                wishText = state.data.text,
                 onNavigateToHomeScreen = onNavigateToHomeScreen
             )
         }
-
         is UiState.Loading -> {
             LoadingScreen(loadingText = stringResource(R.string.sending_wish_loading))
         }

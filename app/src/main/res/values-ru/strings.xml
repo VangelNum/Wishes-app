@@ -231,7 +231,10 @@
     <string name="ad_not_loaded">Реклама не загружена. Пожалуйста, попробуйте позже.</string>
     <string name="watch_ad_and_get_reward">Смотреть рекламу</string>
     <string name="ad_available_in_minute">Реклама будет доступна менее чем через минуту</string>
-    <string name="ad_loading_wait">Реклама загружается, пожалуйста, подождите...</string>
+    <string name="ad_loading_wait">Реклама загружается, пожалуйста, подождите…</string>
     <string name="ad_loading">Загрузка рекламы…</string>
     <string name="ad_available_in">Реклама будет доступна через %1$d минут %2$d секунд</string>
+
+    <string name="share_wish_title">Поделиться пожеланием</string>
+    <string name="share_the_wish">Поделиться созданным пожеланием</string>
 </resources>

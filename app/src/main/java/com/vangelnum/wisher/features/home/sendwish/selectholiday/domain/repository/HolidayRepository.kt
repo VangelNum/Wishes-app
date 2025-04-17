@@ -5,5 +5,5 @@ import com.vangelnum.wisher.features.home.sendwish.selectholiday.data.model.Holi
 import kotlinx.coroutines.flow.Flow
 
 interface HolidayRepository {
-    fun getHolidays(date: String, languageCode: String): Flow<UiState<List<Holiday>>>
+    fun getHolidays(date: String): Flow<UiState<List<Holiday>>>
 }

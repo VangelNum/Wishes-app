@@ -1,6 +1,5 @@
 package com.vangelnum.wisher.features.home.sendwish.selectholiday.presentation
 
-import androidx.compose.ui.text.intl.Locale
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -37,9 +36,8 @@ class HolidaysViewModel @Inject constructor(
     }
 
     fun getHolidays(date: String) {
-        val locale = Locale.current.language
         viewModelScope.launch {
-            holidayRepository.getHolidays(date, locale).collectLatest { state ->
+            holidayRepository.getHolidays(date).collectLatest { state ->
                 _holidayUiState.update {
                     state
                 }
