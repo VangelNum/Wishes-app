@@ -10,7 +10,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class WidgetAddedReceiver : BroadcastReceiver() {
 
     companion object {
-        const val ACTION_WIDGET_ADDED_CALLBACK = "com.vangelnum.wisher.ACTION_WIDGET_ADDED_CALLBACK"
+        const val ACTION_WIDGET_ADDED_CALLBACK = "com.vangelnum.wishes.ACTION_WIDGET_ADDED_CALLBACK"
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {

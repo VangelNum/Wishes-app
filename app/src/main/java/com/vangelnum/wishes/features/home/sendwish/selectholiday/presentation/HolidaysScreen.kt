@@ -42,7 +42,7 @@ fun HolidaysScreen(
         is UiState.Error -> {
             Column {
                 ErrorScreen(
-                    errorMessage = holidaysState.message,
+                    errorMessage = stringResource(R.string.failed_holidays),
                     onButtonClick = onTryAgainLoadingHolidays,
                     buttonMessage = stringResource(R.string.retry_button),
                     content = {

@@ -44,4 +44,14 @@ class BonusRepositoryImpl @Inject constructor(
             emit(UiState.Error(errorParser.parseError(e)))
         }
     }
+
+    override fun getAdRewardCooldownInfo(): Flow<UiState<Long>> = flow {
+        emit(UiState.Loading())
+        try {
+            val response = api.getAdRewardCooldownInfo()
+            emit(UiState.Success(response))
+        } catch (e: Exception) {
+            emit(UiState.Error(errorParser.parseError(e)))
+        }
+    }
 }

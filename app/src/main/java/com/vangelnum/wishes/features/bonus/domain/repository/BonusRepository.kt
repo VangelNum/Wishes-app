@@ -10,4 +10,5 @@ interface BonusRepository {
     fun getBonusInfo(): Flow<UiState<BonusInfo>>
     fun claimDailyBonus(): Flow<UiState<ClaimBonusInfo>>
     fun claimAdReward(): Flow<UiState<AdRewardInfo>>
+    fun getAdRewardCooldownInfo(): Flow<UiState<Long>>
 }

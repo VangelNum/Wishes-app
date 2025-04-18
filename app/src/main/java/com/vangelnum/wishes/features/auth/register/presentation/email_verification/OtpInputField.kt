@@ -34,7 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
-import com.vangelnum.wishes.ui.theme.WisherappTheme
+import com.vangelnum.wishes.ui.theme.WishesappTheme
 
 @Composable
 fun OtpInputField(
@@ -123,7 +123,7 @@ fun OtpInputField(
 @Preview
 @Composable
 private fun OtpInputFieldPreview() {
-    WisherappTheme {
+    WishesappTheme {
         OtpInputField(
             number = null,
             focusRequester = remember { FocusRequester() },

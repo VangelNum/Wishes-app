@@ -22,13 +22,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,6 +71,7 @@ import com.vangelnum.wishes.core.presentation.LoadingScreen
 import com.vangelnum.wishes.core.presentation.SmallLoadingIndicator
 import com.vangelnum.wishes.features.auth.core.model.User
 import com.vangelnum.wishes.features.home.getwish.data.model.Wish
+import com.vangelnum.wishes.features.userwishsendinghistory.presentation.FullScreenImageDialog
 import com.vangelnum.wishes.features.widget.BlurTransformation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -102,7 +107,7 @@ fun GetWishScreenToBottomSheet(
 
 @Composable
 fun WishContent(wish: Wish) {
-
+    var isFullScreenImageVisible by remember { mutableStateOf(false) }
     Column(modifier = Modifier.padding(16.dp)) {
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
@@ -163,26 +168,43 @@ fun WishContent(wish: Wish) {
                     .fillMaxHeight()
                     .weight(1f)
             ) {
-                if (wish.isBlurred) {
-                    InteractiveBlurredImage(
-                        imageUrl = wish.image,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    SubcomposeAsyncImage(
-                        model = wish.image,
-                        contentScale = ContentScale.Crop,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        loading = { SmallLoadingIndicator() },
-                        error = {
-                            Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-                                ErrorScreen(stringResource(R.string.error_loading_image))
+                Box(
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    if (wish.isBlurred) {
+                        InteractiveBlurredImage(
+                            imageUrl = wish.image,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        SubcomposeAsyncImage(
+                            model = wish.image,
+                            contentScale = ContentScale.Crop,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            loading = { SmallLoadingIndicator() },
+                            error = {
+                                Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+                                    ErrorScreen(stringResource(R.string.error_loading_image))
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
+                    IconButton(onClick = {
+                        isFullScreenImageVisible = true
+                    }) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_open_in_full_24),
+                            contentDescription = stringResource(R.string.open_in_full)
+                        )
+                    }
                 }
             }
+        }
+    }
+    if (isFullScreenImageVisible) {
+        FullScreenImageDialog(imageUrl = wish.image) {
+            isFullScreenImageVisible = false
         }
     }
 }

@@ -452,22 +452,36 @@ fun AppNavHost(
         composable<BonusPage> {
             val bonusViewModel = hiltViewModel<BonusViewModel>()
             val bonusUiState = bonusViewModel.bonusUiState.collectAsStateWithLifecycle().value
-            val claimUiState = bonusViewModel.claimBonusUiState.collectAsStateWithLifecycle().value
+            val claimBonusUiState = bonusViewModel.claimBonusUiState.collectAsStateWithLifecycle().value
+            val adRewardCooldownUiState = bonusViewModel.adRewardCooldownUiState.collectAsStateWithLifecycle().value
             val claimAdRewardUiState = bonusViewModel.claimAdRewardUiState.collectAsStateWithLifecycle().value
             BonusScreen(
                 bonusUiState = bonusUiState,
-                claimUiState = claimUiState,
+                claimBonusUiState = claimBonusUiState,
+                adRewardCooldownUiState = adRewardCooldownUiState,
                 claimAdRewardUiState = claimAdRewardUiState,
                 onClaimBonus = {
-                    bonusViewModel.onEvent(BonusEvent.OnClaimBonus) // claim Bonus
-                    bonusViewModel.onEvent(BonusEvent.OnBackToEmptyState) // back to empty state to not show snackbar again
-                    loginViewModel.onEvent(LoginEvent.OnRefreshUser) // refresh user info to see current coins
-                    bonusViewModel.onEvent(BonusEvent.OnGetBonusInfo) // update state about bonus info
+                    bonusViewModel.onEvent(BonusEvent.OnClaimBonus)
                 },
                 onClaimAdReward = {
                     bonusViewModel.onEvent(BonusEvent.OnClaimAdReward)
                 }
             )
+
+            LaunchedEffect(claimBonusUiState) {
+                if (claimBonusUiState is UiState.Success) {
+                    bonusViewModel.onEvent(BonusEvent.OnBackToEmptyState)
+                    loginViewModel.onEvent(LoginEvent.OnRefreshUser)
+                    bonusViewModel.onEvent(BonusEvent.OnGetBonusInfo)
+                }
+            }
+
+            LaunchedEffect(claimAdRewardUiState) {
+                if (claimAdRewardUiState is UiState.Success) {
+                    bonusViewModel.onEvent(BonusEvent.OnGetAdRewardCooldownInfo)
+                    loginViewModel.onEvent(LoginEvent.OnRefreshUser)
+                }
+            }
         }
     }
 }

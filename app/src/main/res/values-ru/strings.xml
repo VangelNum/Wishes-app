@@ -233,13 +233,20 @@
     <string name="ad_available_in_minute">Реклама будет доступна менее чем через минуту</string>
     <string name="ad_loading_wait">Реклама загружается, пожалуйста, подождите…</string>
     <string name="ad_loading">Загрузка рекламы…</string>
-    <string name="ad_available_in">Реклама будет доступна через %1$d минут %2$d секунд</string>
+    <string name="ad_available_in">Реклама будет доступна через %1$d секунд</string>
 
     <string name="share_wish_title">Поделиться пожеланием</string>
     <string name="share_the_wish">Поделиться созданным пожеланием</string>
 
-    <string name="app_info_text">\n\nНайти другие мои пожелания можно по ключу %1$s в приложении https://play.google.com/store/apps/details?id=com.vangelnum.wishes. В нем также можно создать свое пожелание</string>
+    <string name="app_info_text">\n\nНайти другие мои пожелания можно по ключу %1$s в приложении https://play.google.com/store/apps/details?id=com.vangelnum.wishes В нем также можно создать свое пожелание</string>
     <string name="share_image_download_failed">Не удалось скачать изображение для отправки</string>
     <string name="share_image_preparation_error">Ошибка подготовки изображения: %1$s</string>
     <string name="share_no_app_found">Не найдено приложение для отправки контента</string>
+
+    <string name="downloading_image">Загрузка изображения</string>
+    <string name="downloading_image_description">Загрузка изображения…</string>
+    <string name="download_started">Загрузка началась. Проверьте папку "Загрузки".</string>
+    <string name="download_failed">Ошибка загрузки</string>
+
+    <string name="failed_holidays">Ошибка загрузки праздников</string>
 </resources>

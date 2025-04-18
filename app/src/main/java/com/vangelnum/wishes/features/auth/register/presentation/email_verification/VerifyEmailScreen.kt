@@ -36,7 +36,7 @@ import com.vangelnum.wishes.core.presentation.LoadingScreen
 import com.vangelnum.wishes.core.presentation.SnackbarController
 import com.vangelnum.wishes.core.presentation.SnackbarEvent
 import com.vangelnum.wishes.features.auth.core.model.AuthResponse
-import com.vangelnum.wishes.ui.theme.WisherappTheme
+import com.vangelnum.wishes.ui.theme.WishesappTheme
 import kotlinx.coroutines.delay
 
 @Composable
@@ -155,7 +155,7 @@ fun VerifyEmailScreen(
 @Preview
 @Composable
 private fun OtpInputFieldPreview() {
-    WisherappTheme {
+    WishesappTheme {
         OtpInputField(
             number = null,
             focusRequester = remember { FocusRequester() },

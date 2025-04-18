@@ -234,13 +234,20 @@
     <string name="ad_loading_wait">Ad is loading, please wait…</string>
     <string name="ad_loading">Loading ad…</string>
 
-    <string name="ad_available_in">Ad available in %1$d minutes %2$d seconds</string>
+    <string name="ad_available_in">Ad available in %1$d seconds</string>
     <string name="share_wish_title">Share wish title</string>
 
     <string name="share_the_wish">Share the wish you created</string>
 
-    <string name="app_info_text">\n\nYou can find more of my wishes by key %1$s in the app https://play.google.com/store/apps/details?id=com.vangelnum.wishes. You can also create your own wish there.</string>
+    <string name="app_info_text">\n\nYou can find more of my wishes by key %1$s in the app https://play.google.com/store/apps/details?id=com.vangelnum.wishes You can also create your own wish there.</string>
     <string name="share_image_download_failed">Failed to download image for sharing</string>
     <string name="share_image_preparation_error">Error preparing image: %1$s</string>
     <string name="share_no_app_found">No application found to handle content sharing</string>
+
+    <string name="downloading_image">Downloading image</string>
+    <string name="downloading_image_description">Downloading image</string>
+    <string name="download_started">Download started…</string>
+    <string name="download_failed">Download failed</string>
+
+    <string name="failed_holidays">Error loading holidays</string>
 </resources>

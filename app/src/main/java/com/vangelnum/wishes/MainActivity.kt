@@ -38,7 +38,7 @@ import com.vangelnum.wishes.core.presentation.SnackbarController
 import com.vangelnum.wishes.features.auth.login.presentation.LoginEvent
 import com.vangelnum.wishes.features.auth.login.presentation.LoginViewModel
 import com.vangelnum.wishes.features.auth.register.presentation.RegisterUserViewModel
-import com.vangelnum.wishes.ui.theme.WisherappTheme
+import com.vangelnum.wishes.ui.theme.WishesappTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
                 showMenuIcon = currentDestination.hasRoute(HomePage::class)
             }
 
-            WisherappTheme {
+            WishesappTheme {
                 ModalNavigationDrawer(
                     gesturesEnabled = drawerState.isOpen,
                     drawerState = drawerState,

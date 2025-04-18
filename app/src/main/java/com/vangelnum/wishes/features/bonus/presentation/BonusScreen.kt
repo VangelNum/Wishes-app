@@ -71,7 +71,8 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun BonusScreen(
     bonusUiState: UiState<BonusInfo>,
-    claimUiState: UiState<ClaimBonusInfo>,
+    claimBonusUiState: UiState<ClaimBonusInfo>,
+    adRewardCooldownUiState: UiState<Long>,
     claimAdRewardUiState: UiState<AdRewardInfo>,
     onClaimBonus: () -> Unit,
     onClaimAdReward: () -> Unit
@@ -90,7 +91,8 @@ fun BonusScreen(
             BonusContent(
                 bonusInfo = bonusUiState.data,
                 onClaimBonus = onClaimBonus,
-                claimUiState = claimUiState,
+                claimBonusUiState = claimBonusUiState,
+                adRewardCooldownUiState = adRewardCooldownUiState,
                 claimAdRewardUiState = claimAdRewardUiState,
                 onClaimAdReward = onClaimAdReward
             )
@@ -103,7 +105,8 @@ fun BonusScreen(
 fun BonusContent(
     bonusInfo: BonusInfo,
     onClaimBonus: () -> Unit,
-    claimUiState: UiState<ClaimBonusInfo>,
+    claimBonusUiState: UiState<ClaimBonusInfo>,
+    adRewardCooldownUiState: UiState<Long>,
     claimAdRewardUiState: UiState<AdRewardInfo>,
     onClaimAdReward: () -> Unit
 ) {
@@ -112,7 +115,7 @@ fun BonusContent(
 
     val isClaimableInitial = bonusInfo.remainingHours == 0 && bonusInfo.remainingMinutes == 0
     var isClaimable by remember { mutableStateOf(isClaimableInitial) }
-    val isButtonEnabled = isClaimable && claimUiState !is UiState.Loading
+    val isButtonEnabled = isClaimable && claimBonusUiState !is UiState.Loading
 
     val context = LocalContext.current
 
@@ -135,11 +138,10 @@ fun BonusContent(
         }
     }
 
-
-    LaunchedEffect(claimUiState) {
-        when (claimUiState) {
+    LaunchedEffect(claimBonusUiState) {
+        when (claimBonusUiState) {
             is UiState.Error -> {
-                SnackbarController.sendEvent(SnackbarEvent(claimUiState.message))
+                SnackbarController.sendEvent(SnackbarEvent(claimBonusUiState.message))
             }
 
             is UiState.Success -> {
@@ -149,7 +151,7 @@ fun BonusContent(
                         string(
                             context,
                             R.string.bonus_claimed_success,
-                            claimUiState.data.coinsAwarded,
+                            claimBonusUiState.data.coinsAwarded,
                             coinsString
                         )
                     )
@@ -189,10 +191,7 @@ fun BonusContent(
     var rewardedAdLoader: RewardedAdLoader? by remember { mutableStateOf(null) }
     var isLoadingAd by remember { mutableStateOf(false) }
     var isAdAvailable by remember { mutableStateOf(true) }
-    var lastAdViewTime by remember { mutableStateOf(0L) }
-    val adUnitId = "R-M-15084813-1"
-    val adCooldown: Long = TimeUnit.MINUTES.toMillis(1)
-    var remainingAdTimeInMillis by remember { mutableStateOf(0L) }
+    val adUnitId = "demo-rewarded-yandex"
 
     fun loadRewardedAd() {
         isLoadingAd = true
@@ -214,6 +213,9 @@ fun BonusContent(
         val adRequestConfiguration = AdRequestConfiguration.Builder(adUnitId).build()
         rewardedAdLoader?.loadAd(adRequestConfiguration)
     }
+
+    var adCooldownTimeSeconds by remember { mutableStateOf(0L) }
+    var isAdButtonEnabled by remember { mutableStateOf(true) }
 
     fun showAd() {
         if (!isAdAvailable) {
@@ -254,13 +256,11 @@ fun BonusContent(
                 override fun onRewarded(reward: Reward) {
                     onClaimAdReward()
                     Log.d("YandexAds", "Пользователь получил награду: ${reward.amount} ${reward.type}")
-                    scope.launch {
-                        SnackbarController.sendEvent(SnackbarEvent(string(context, R.string.ad_reward_received, reward.amount, reward.type)))
-                    }
 
-                    lastAdViewTime = System.currentTimeMillis()
-                    isAdAvailable = false
-                    remainingAdTimeInMillis = adCooldown
+                    if (adRewardCooldownUiState is UiState.Success) {
+                        adCooldownTimeSeconds = adRewardCooldownUiState.data
+                        isAdButtonEnabled = false // Disable button immediately after reward
+                    }
                 }
             })
             show(context as MainActivity)
@@ -272,46 +272,37 @@ fun BonusContent(
         }
     }
 
-    fun checkAdAvailability() {
-        val currentTime = System.currentTimeMillis()
-        val elapsedTime = currentTime - lastAdViewTime // Время, прошедшее с последнего просмотра
+    LaunchedEffect(Unit) {
+        loadRewardedAd()
+    }
 
-        if (elapsedTime >= adCooldown) {
-            isAdAvailable = true
-            remainingAdTimeInMillis = 0 // Если время вышло, сбрасываем таймер
+    LaunchedEffect(adRewardCooldownUiState) {
+        if (adRewardCooldownUiState is UiState.Success) {
+            if (adRewardCooldownUiState.data > 0) {
+                adCooldownTimeSeconds = adRewardCooldownUiState.data
+                isAdButtonEnabled = false // Disable initially if cooldown from API is active
+            } else {
+                isAdButtonEnabled = true // Enable if no initial cooldown from API
+            }
         } else {
-            isAdAvailable = false
-            remainingAdTimeInMillis = adCooldown - elapsedTime // Рассчитываем оставшееся время
-        }
-
-        val previouslyAvailable = isAdAvailable
-        if (previouslyAvailable != isAdAvailable) {
-            Log.d("YandexAds", "checkAdAvailability: isAdAvailable changed to $isAdAvailable")
-        }
-        if (isAdAvailable && rewardedAd == null && !isLoadingAd) { // Add !isLoadingAd check
-            Log.d("YandexAds", "checkAdAvailability: Time is up and no ad loaded/loading. Requesting new ad.")
-            loadRewardedAd()
+            isAdButtonEnabled = true // Keep enabled if loading fails, or handle error case differently
         }
     }
 
-    LaunchedEffect(Unit) {
-        loadRewardedAd()
-        checkAdAvailability()
 
-        while (isActive) {
-            delay(1000)
-            checkAdAvailability()
+    LaunchedEffect(adCooldownTimeSeconds) {
+        if (adCooldownTimeSeconds > 0) {
+            isAdButtonEnabled = false
+            while (isActive && adCooldownTimeSeconds > 0) {
+                delay(1000)
+                adCooldownTimeSeconds--
+            }
+            if (adCooldownTimeSeconds <= 0) {
+                isAdButtonEnabled = true
+            }
         }
     }
 
-    LaunchedEffect(Unit) {
-        loadRewardedAd()
-        checkAdAvailability()
-        while (isActive) {
-            delay(10_000)
-            checkAdAvailability()
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -410,7 +401,7 @@ fun BonusContent(
             shape = RoundedCornerShape(16.dp)
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.height(24.dp)) {
-                if (claimUiState is UiState.Loading) {
+                if (claimBonusUiState is UiState.Loading) {
                     SmallLoadingIndicator()
                 } else {
                     Text(stringResource(R.string.claim_reward))
@@ -420,53 +411,58 @@ fun BonusContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                if (!isLoadingAd) {
-                    showAd()
-                } else {
-                    Log.d("YandexAds", "Реклама еще загружается, подождите.")
-                    scope.launch {
-                        SnackbarController.sendEvent(SnackbarEvent(string(context, R.string.ad_loading_wait)))
+        if (adRewardCooldownUiState is UiState.Success) {
+            Column {
+                Button(
+                    onClick = {
+                        if (!isLoadingAd && isAdButtonEnabled) {
+                            showAd()
+                        } else if (!isAdButtonEnabled) {
+                            scope.launch {
+                                SnackbarController.sendEvent(SnackbarEvent(string(context, R.string.ad_not_available_yet)))
+                            }
+                        } else {
+                            Log.d("YandexAds", "Реклама еще загружается, подождите.")
+                            scope.launch {
+                                SnackbarController.sendEvent(SnackbarEvent(string(context, R.string.ad_loading_wait)))
+                            }
+                        }
+                    },
+                    enabled = isAdButtonEnabled,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    if (isLoadingAd) {
+                        Text(stringResource(R.string.loading))
+                    } else {
+                        Text(stringResource(R.string.watch_ad_and_get_reward))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Card {
+                            Row(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("+10")
+                                Image(painterResource(R.drawable.coin), modifier = Modifier.size(16.dp), contentDescription = null)
+                            }
+                        }
                     }
                 }
-            },
-            enabled = !isLoadingAd && rewardedAd != null && isAdAvailable,
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            if (isLoadingAd) {
-                SmallLoadingIndicator()
-            } else {
-                Text(stringResource(R.string.watch_ad_and_get_reward))
-                Spacer(modifier = Modifier.width(8.dp))
-                Card {
-                    Row(
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("+10")
-                        Image(painterResource(R.drawable.coin), modifier = Modifier.size(16.dp), contentDescription = null)
-                    }
+                if (adCooldownTimeSeconds > 0) {
+                    Text(
+                        text = stringResource(R.string.ad_available_in, adCooldownTimeSeconds),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
-        }
-
-        if (remainingAdTimeInMillis > 0) {
-            val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingAdTimeInMillis)
-            val seconds = TimeUnit.MILLISECONDS.toSeconds(remainingAdTimeInMillis) % 60
-            Text(
-                text = stringResource(R.string.ad_available_in, minutes, seconds),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                textAlign = TextAlign.Center
-            )
         }
     }
 }

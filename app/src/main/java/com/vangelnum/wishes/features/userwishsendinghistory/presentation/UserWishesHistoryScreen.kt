@@ -1,5 +1,9 @@
 package com.vangelnum.wishes.features.userwishsendinghistory.presentation
 
+import android.app.DownloadManager
+import android.content.Context
+import android.os.Environment
+import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -51,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.net.toUri
 import coil.compose.SubcomposeAsyncImage
 import com.vangelnum.wishes.R
 import com.vangelnum.wishes.core.data.UiState
@@ -310,6 +315,7 @@ fun WishHistoryCard(
 
 @Composable
 fun FullScreenImageDialog(imageUrl: String, onDismissRequest: () -> Unit) {
+    val context = LocalContext.current
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -334,19 +340,68 @@ fun FullScreenImageDialog(imageUrl: String, onDismissRequest: () -> Unit) {
                     SmallLoadingIndicator()
                 }
             )
-            IconButton(
-                onClick = onDismissRequest,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.Top
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.baseline_close_24),
-                    contentDescription = stringResource(R.string.close),
-                    tint = Color.White
-                )
+                IconButton(
+                    onClick = { downloadImage(imageUrl, context) },
+                    modifier = Modifier
+                        .padding(8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_download_24),
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+                IconButton(
+                    onClick = onDismissRequest,
+                    modifier = Modifier
+                        .padding(8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_close_24),
+                        contentDescription = stringResource(R.string.close),
+                        tint = Color.White
+                    )
+                }
             }
         }
+    }
+}
+
+fun downloadImage(imageUrl: String, context: Context) {
+    try {
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val uri = imageUrl.toUri()
+        val request = DownloadManager.Request(uri)
+            .setTitle(context.getString(R.string.downloading_image))
+            .setDescription(context.getString(R.string.downloading_image_description))
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, getImageFilename(imageUrl))
+
+        downloadManager.enqueue(request)
+        Toast.makeText(context, context.getString(R.string.download_started), Toast.LENGTH_SHORT).show()
+    } catch (e: Exception) {
+        Toast.makeText(context, context.getString(R.string.download_failed) + ": " + e.message, Toast.LENGTH_LONG).show()
+        e.printStackTrace()
+    }
+}
+
+private fun getImageFilename(imageUrl: String): String {
+    val imageName = imageUrl.substringAfterLast("/")
+    val maxLength = 50
+
+    return if (imageName.isNotBlank()) {
+        if (imageName.length > maxLength) {
+            imageName.substring(0, maxLength)
+        } else {
+            imageName
+        }
+    } else {
+        "image_${System.currentTimeMillis()}.jpg"
     }
 }
 

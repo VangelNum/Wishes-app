@@ -24,11 +24,15 @@ class BonusViewModel @Inject constructor(
     private val _claimBonusUiState = MutableStateFlow<UiState<ClaimBonusInfo>>(UiState.Idle())
     val claimBonusUiState = _claimBonusUiState.asStateFlow()
 
+    private val _adRewardCooldownUiState = MutableStateFlow<UiState<Long>>(UiState.Idle())
+    val adRewardCooldownUiState = _adRewardCooldownUiState.asStateFlow()
+
     private val _claimAdRewardUiState = MutableStateFlow<UiState<AdRewardInfo>>(UiState.Idle())
     val claimAdRewardUiState = _claimAdRewardUiState.asStateFlow()
 
     init {
         getBonusInfo()
+        getAdRewardCooldownInfo()
     }
 
     fun onEvent(event: BonusEvent) {
@@ -37,6 +41,15 @@ class BonusViewModel @Inject constructor(
             BonusEvent.OnGetBonusInfo -> getBonusInfo()
             BonusEvent.OnBackToEmptyState -> backToEmptyState()
             BonusEvent.OnClaimAdReward -> claimAdReward()
+            BonusEvent.OnGetAdRewardCooldownInfo -> getAdRewardCooldownInfo()
+        }
+    }
+
+    private fun getAdRewardCooldownInfo() {
+        viewModelScope.launch {
+            bonusRepository.getAdRewardCooldownInfo().collect { state->
+                _adRewardCooldownUiState.update { state }
+            }
         }
     }
 

@@ -5,4 +5,5 @@ sealed class BonusEvent {
     data object OnClaimBonus: BonusEvent()
     data object OnBackToEmptyState: BonusEvent()
     data object OnClaimAdReward: BonusEvent()
+    data object OnGetAdRewardCooldownInfo: BonusEvent()
 }

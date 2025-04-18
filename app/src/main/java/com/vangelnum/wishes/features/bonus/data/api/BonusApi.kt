@@ -13,6 +13,8 @@ interface BonusApi {
     @POST("/api/v1/user/daily-login-bonus")
     suspend fun claimDailyBonus(): ClaimBonusInfo
 
+    @GET("/api/v1/user/ad-cooldown")
+    suspend fun getAdRewardCooldownInfo(): Long
     @POST("/api/v1/user/claim-ad-reward")
     suspend fun claimAdReward(): AdRewardInfo
 }
