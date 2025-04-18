@@ -1,9 +1,6 @@
 package com.vangelnum.wishes.features.userwishsendinghistory.presentation
 
-import android.app.DownloadManager
 import android.content.Context
-import android.os.Environment
-import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -55,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.net.toUri
 import coil.compose.SubcomposeAsyncImage
 import com.vangelnum.wishes.R
 import com.vangelnum.wishes.core.data.UiState
@@ -63,6 +59,7 @@ import com.vangelnum.wishes.core.presentation.ErrorScreen
 import com.vangelnum.wishes.core.presentation.LoadingScreen
 import com.vangelnum.wishes.core.presentation.SmallLoadingIndicator
 import com.vangelnum.wishes.features.auth.core.model.User
+import com.vangelnum.wishes.features.download.AndroidDownloader
 import com.vangelnum.wishes.features.home.getwish.data.model.Wish
 
 @Composable
@@ -373,38 +370,9 @@ fun FullScreenImageDialog(imageUrl: String, onDismissRequest: () -> Unit) {
 }
 
 fun downloadImage(imageUrl: String, context: Context) {
-    try {
-        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val uri = imageUrl.toUri()
-        val request = DownloadManager.Request(uri)
-            .setTitle(context.getString(R.string.downloading_image))
-            .setDescription(context.getString(R.string.downloading_image_description))
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, getImageFilename(imageUrl))
-
-        downloadManager.enqueue(request)
-        Toast.makeText(context, context.getString(R.string.download_started), Toast.LENGTH_SHORT).show()
-    } catch (e: Exception) {
-        Toast.makeText(context, context.getString(R.string.download_failed) + ": " + e.message, Toast.LENGTH_LONG).show()
-        e.printStackTrace()
-    }
+    val downloader = AndroidDownloader(context)
+    downloader.downloadFile(imageUrl)
 }
-
-private fun getImageFilename(imageUrl: String): String {
-    val imageName = imageUrl.substringAfterLast("/")
-    val maxLength = 50
-
-    return if (imageName.isNotBlank()) {
-        if (imageName.length > maxLength) {
-            imageName.substring(0, maxLength)
-        } else {
-            imageName
-        }
-    } else {
-        "image_${System.currentTimeMillis()}.jpg"
-    }
-}
-
 
 @Composable
 fun WishDetailItem(text: String, iconResId: Int, modifier: Modifier = Modifier) {

@@ -191,7 +191,7 @@ fun BonusContent(
     var rewardedAdLoader: RewardedAdLoader? by remember { mutableStateOf(null) }
     var isLoadingAd by remember { mutableStateOf(false) }
     var isAdAvailable by remember { mutableStateOf(true) }
-    val adUnitId = "demo-rewarded-yandex"
+    val adUnitId = "R-M-15084813-1"
 
     fun loadRewardedAd() {
         isLoadingAd = true
