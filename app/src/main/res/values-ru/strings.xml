@@ -52,7 +52,7 @@
     <string name="wish_sent_success_message">Ваше поздравление отправлено! Уникальный ключ: %1$s</string> <!-- %1$s для ключа -->
 
     <!-- Send Wish Input Content -->
-    <string name="image_section_title">Изображение</string>
+    <string name="image_section_title">Открытка</string>
     <string name="send_button">Отправить</string>
 
     <!-- Tabs -->
@@ -249,4 +249,20 @@
     <string name="download_failed">Ошибка загрузки</string>
 
     <string name="failed_holidays">Ошибка загрузки праздников</string>
+    <string name="loading_profile">Загружаем ваш профиль…</string>
+    <string name="update_profile_waiting">Обновляем профиль..</string>
+
+    <string name="configure_widget">Настройка виджета</string>
+    <string name="save_and_add_widget">Сохранить и добавить виджет</string>
+
+    <string name="widget_screen_info_text">Здесь вы можете добавить ключи для отслеживания. Для каждого ключа можно добавить отдельный виджет на главный экран.</string>
+    <string name="widget_screen_create_new_key_title">Создать новый ключ</string>
+    <string name="widget_screen_add_button_description">Добавить</string>
+    <string name="widget_screen_no_keys_added">Вы еще не добавили ни одного ключа.</string>
+    <string name="widget_screen_your_keys_title">Ваши ключи для виджета</string>
+    <string name="widget_screen_delete_key_description">Удалить ключ %1$s</string>
+    <string name="widget_screen_activity_not_found_error">Не удалось получить доступ к Activity.</string>
+    <string name="widget_screen_add_widget_button_text">Добавить виджет с этим ключом</string>
+    <string name="widget_screen_request_pin_widget_exception">Ошибка при запросе добавления виджета: %1$s</string>
+    <string name="widget_screen_pin_widget_not_supported_error">Ваш лаунчер не поддерживает добавление виджетов таким способом.</string>
 </resources>

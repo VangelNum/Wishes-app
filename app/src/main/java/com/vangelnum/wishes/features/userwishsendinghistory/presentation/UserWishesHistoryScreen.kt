@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
@@ -36,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +62,7 @@ import com.vangelnum.wishes.core.presentation.ErrorScreen
 import com.vangelnum.wishes.core.presentation.LoadingScreen
 import com.vangelnum.wishes.core.presentation.SmallLoadingIndicator
 import com.vangelnum.wishes.features.auth.core.model.User
+import com.vangelnum.wishes.features.auth.core.utils.shareWish
 import com.vangelnum.wishes.features.download.AndroidDownloader
 import com.vangelnum.wishes.features.home.getwish.data.model.Wish
 
@@ -67,7 +71,8 @@ fun UserWishesHistoryScreen(
     state: UiState<List<Wish>>,
     onNavigateToViewHistoryScreen: (wishId: Int) -> Unit,
     modifier: Modifier = Modifier,
-    onEvent:(UserWishesHistoryEvent)->Unit
+    onEvent:(UserWishesHistoryEvent)->Unit,
+    key: String
 ) {
     when (state) {
         is UiState.Idle -> {}
@@ -83,7 +88,7 @@ fun UserWishesHistoryScreen(
             if (state.data.isEmpty()) {
                 UserWishesHistoryEmptyContent()
             } else {
-                UserWishesHistoryContent(state.data, onNavigateToViewHistoryScreen, modifier, onEvent)
+                UserWishesHistoryContent(state.data, onNavigateToViewHistoryScreen, modifier, onEvent, key)
             }
         }
     }
@@ -113,8 +118,12 @@ fun UserWishesHistoryContent(
     data: List<Wish>,
     onNavigateToViewHistoryScreen: (wishId: Int) -> Unit,
     modifier: Modifier,
-    onEvent:(UserWishesHistoryEvent)->Unit
+    onEvent:(UserWishesHistoryEvent)->Unit,
+    key: String
 ) {
+    val reversedData = data.reversed()
+    val totalItems = reversedData.size
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -126,9 +135,15 @@ fun UserWishesHistoryContent(
                 style = MaterialTheme.typography.headlineMedium,
             )
         }
-        itemsIndexed(data.reversed()) { index, wish ->
-            val reversedIndex = data.size - index
-            WishHistoryCard(wish = wish, index = reversedIndex, onNavigateToViewHistoryScreen, onEvent)
+        itemsIndexed(reversedData) { index, wish ->
+            val displayNumber = totalItems - index
+            WishHistoryCard(
+                wish = wish,
+                index = displayNumber,
+                onNavigateToViewHistoryScreen = onNavigateToViewHistoryScreen,
+                onEvent = onEvent,
+                key = key
+            )
         }
     }
 }
@@ -138,11 +153,14 @@ fun WishHistoryCard(
     wish: Wish,
     index: Int,
     onNavigateToViewHistoryScreen: (wishId: Int) -> Unit,
-    onEvent:(UserWishesHistoryEvent)->Unit
+    onEvent:(UserWishesHistoryEvent)->Unit,
+    key: String
 ) {
     var isFullScreenImageVisible by remember { mutableStateOf(false) }
     var textHeightPx by remember { mutableIntStateOf(0) }
     val density = LocalContext.current.resources.displayMetrics.density
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val calculatedImageHeightDp = remember(textHeightPx) {
         max(
@@ -165,7 +183,7 @@ fun WishHistoryCard(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -182,6 +200,20 @@ fun WishHistoryCard(
                     Icon(
                         painter = painterResource(R.drawable.baseline_delete_24),
                         contentDescription = stringResource(R.string.delete)
+                    )
+                }
+                IconButton(onClick = {
+                    shareWish(
+                        key = key,
+                        wishText = wish.text,
+                        wishImage = wish.image,
+                        context = context,
+                        scope = scope
+                    )
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = stringResource(R.string.share_the_wish)
                     )
                 }
             }
@@ -450,7 +482,8 @@ fun UserWishesHistoryContentPreview() {
             data = mockData,
             onNavigateToViewHistoryScreen = { },
             modifier = Modifier,
-            onEvent = {}
+            onEvent = {},
+            key = ""
         )
     }
 }

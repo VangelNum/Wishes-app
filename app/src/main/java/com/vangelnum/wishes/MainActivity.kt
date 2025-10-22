@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+
             val loginViewModel: LoginViewModel = hiltViewModel()
             val loginState = loginViewModel.loginUiState.collectAsStateWithLifecycle().value
             val registrationViewModel: RegisterUserViewModel = hiltViewModel()
@@ -80,20 +81,20 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
-            var shouldShowAppBar by remember {
+            var isAppBarVisible by remember {
                 mutableStateOf(false)
             }
-            var showMenuIcon by remember {
+            var isMenuIconVisible by remember {
                 mutableStateOf(false)
             }
             navBackStackEntry?.destination?.let { currentDestination ->
-                shouldShowAppBar =
+                isAppBarVisible =
                     !currentDestination.hasRoute(LoginPage::class) && !currentDestination.hasRoute(
                         RegistrationPage::class
                     ) && !currentDestination.hasRoute(UploadAvatarPage::class)
             }
             navBackStackEntry?.destination?.let { currentDestination ->
-                showMenuIcon = currentDestination.hasRoute(HomePage::class)
+                isMenuIconVisible = currentDestination.hasRoute(HomePage::class)
             }
 
             WishesappTheme {
@@ -153,14 +154,14 @@ class MainActivity : ComponentActivity() {
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
                         topBar = {
-                            if (shouldShowAppBar) {
+                            if (isAppBarVisible) {
                                 AppTopBar(
                                     modifier = Modifier,
                                     loginState = loginState,
                                     onBack = {
                                         navController.popBackStack()
                                     },
-                                    showMenuIcon = showMenuIcon,
+                                    showMenuIcon = isMenuIconVisible,
                                     scope = scope,
                                     drawerState = drawerState
                                 )

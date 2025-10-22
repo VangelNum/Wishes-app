@@ -1,5 +1,6 @@
 package com.vangelnum.wishes.features.home.sendwish.selectholiday.presentation
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import com.vangelnum.wishes.core.presentation.ErrorScreen
 import com.vangelnum.wishes.core.presentation.LoadingScreen
 import com.vangelnum.wishes.features.home.sendwish.selectholiday.data.model.Holiday
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HolidaysScreen(
     modifier: Modifier = Modifier,

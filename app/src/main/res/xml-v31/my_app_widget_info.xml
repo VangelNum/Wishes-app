@@ -7,4 +7,5 @@
     android:widgetCategory="home_screen"
     android:previewLayout="@layout/widget_preview_success"
     android:previewImage="@layout/widget_preview_success"
+    android:configure="com.vangelnum.wishes.features.widget.WidgetConfigurationActivity"
     />

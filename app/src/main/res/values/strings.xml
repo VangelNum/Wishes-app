@@ -250,4 +250,21 @@
     <string name="download_failed">Download failed</string>
 
     <string name="failed_holidays">Error loading holidays</string>
+    <string name="loading_profile">Loading your profile…</string>
+    <string name="update_profile_waiting">Updating profile..</string>
+
+    <string name="configure_widget">Configure widget</string>
+    <string name="save_and_add_widget">Save and add widget</string>
+
+    <string name="widget_screen_info_text">Here you can add keys to track. A separate widget can be added to the home screen for each key.</string>
+    <string name="widget_screen_create_new_key_title">Create a new key</string>
+    <string name="widget_screen_add_button_description">Add</string>
+    <string name="widget_screen_no_keys_added">You haven\'t added any keys yet.</string>
+    <string name="widget_screen_your_keys_title">Your widget keys</string>
+    <string name="widget_screen_delete_key_description">Delete key %1$s</string>
+    <string name="widget_screen_activity_not_found_error">Failed to get access to Activity.</string>
+    <string name="widget_screen_add_widget_button_text">Add widget with this key</string>
+    <string name="widget_screen_request_pin_widget_exception">Error requesting to add widget: %1$s</string>
+    <string name="widget_screen_pin_widget_not_supported_error">Your launcher does not support pinning widgets this way.</string>
+
 </resources>

@@ -1,4 +1,4 @@
-package com.vangelnum.wishes.features.profile.data.repository
+package com.vangelnum.wishes.features.editprofile.data.repository
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -8,10 +8,10 @@ import android.util.Log
 import com.vangelnum.wishes.core.data.UiState
 import com.vangelnum.wishes.core.utils.ErrorParser
 import com.vangelnum.wishes.features.auth.core.model.AuthResponse
+import com.vangelnum.wishes.features.editprofile.data.api.EditProfileApi
+import com.vangelnum.wishes.features.editprofile.data.model.EditProfileRequest
+import com.vangelnum.wishes.features.editprofile.domain.repository.EditProfileRepository
 import com.vangelnum.wishes.features.home.sendwish.createwish.data.api.UploadImageApi
-import com.vangelnum.wishes.features.profile.data.api.ProfileApi
-import com.vangelnum.wishes.features.profile.data.model.UpdateProfileRequest
-import com.vangelnum.wishes.features.profile.domain.repository.UpdateProfileRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -22,27 +22,28 @@ import java.io.InputStream
 import java.util.UUID
 import javax.inject.Inject
 
-class UpdateProfileRepositoryImpl @Inject constructor(
-    private val profileApi: ProfileApi,
+class EditProfileRepositoryImpl @Inject constructor(
+    private val editProfileApi: EditProfileApi,
     private val updateImageApi: UploadImageApi,
     private val errorParser: ErrorParser,
-) : UpdateProfileRepository {
+) : EditProfileRepository {
     override fun updateUserProfile(
         name: String?,
         email: String?,
-        password: String?,
-        currentPassword: String?,
-        avatar: String?
+        avatarUrl: String?,
+        newPassword: String?,
+        currentPassword: String?
     ): Flow<UiState<AuthResponse>> = flow {
+        emit(UiState.Loading())
         try {
-            val updateProfileRequest = UpdateProfileRequest(
+            val editProfileRequest = EditProfileRequest(
                 name = name,
                 email = email,
-                avatarUrl = avatar,
-                newPassword = password,
+                avatarUrl = avatarUrl,
+                newPassword = newPassword,
                 currentPassword = currentPassword
             )
-            val response = profileApi.updateProfileInfo(updateProfileRequest)
+            val response = editProfileApi.editProfile(editProfileRequest)
             emit(UiState.Success(response))
         } catch (e: Exception) {
             emit(UiState.Error(errorParser.parseError(e)))
@@ -51,25 +52,21 @@ class UpdateProfileRepositoryImpl @Inject constructor(
 
     override fun uploadProfileImage(imageUri: Uri, context: Context): Flow<UiState<String>> = flow {
         emit(UiState.Loading())
-        Log.d("UploadDebug", "Starting uploadProfileImage for URI: $imageUri")
         val seed = UUID.randomUUID()
         val inputStream: InputStream? = try {
             context.contentResolver.openInputStream(imageUri)
         } catch (e: Exception) {
-            Log.e("UploadDebug", "Error opening InputStream: ${e.message}", e)
             null
         }
 
         if (inputStream == null) {
-            Log.e("UploadDebug", "InputStream is null for URI: $imageUri")
-            emit(UiState.Error("Failed to read image data from Uri (InputStream was null)"))
+            emit(UiState.Error("Failed to read image data from Uri"))
         }
 
         Log.d("UploadDebug", "InputStream opened successfully.")
 
         inputStream.use { stream ->
             try {
-                Log.d("UploadDebug", "Decoding stream...")
                 val originalBitmap = BitmapFactory.decodeStream(stream)
                 if (originalBitmap == null) {
                     Log.e("UploadDebug", "BitmapFactory.decodeStream returned null.")
@@ -88,7 +85,6 @@ class UpdateProfileRepositoryImpl @Inject constructor(
                     "avatar_$seed.jpg",
                     requestFile
                 )
-                Log.d("UploadDebug", "Calling updateImageApi.uploadImage...")
                 val result = updateImageApi.uploadImage(imagePart)
                 Log.d("UploadDebug", "API call successful. Result: $result")
                 emit(UiState.Success(result))

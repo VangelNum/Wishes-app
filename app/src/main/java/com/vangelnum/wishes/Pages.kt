@@ -61,3 +61,10 @@ object BunsPage
 
 @Serializable
 object BonusPage
+
+@Serializable
+data class EditProfilePage(
+    val avatar: String,
+    val name: String,
+    val email: String
+)

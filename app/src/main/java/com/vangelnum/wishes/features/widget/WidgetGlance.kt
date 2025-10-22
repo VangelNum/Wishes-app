@@ -2,6 +2,7 @@ package com.vangelnum.wishes.features.widget
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +14,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -22,6 +24,7 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
@@ -49,25 +52,33 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import coil.ImageLoader
 import coil.request.ImageRequest
+import com.vangelnum.wishes.App.Companion.dataStore
 import com.vangelnum.wishes.MainActivity
 import com.vangelnum.wishes.R
 import com.vangelnum.wishes.core.utils.string
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
+
 
 class WidgetGlance : GlanceAppWidget() {
     override var stateDefinition = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
+        val appWidgetIdStr = appWidgetId.toString()
+
         provideContent {
             val prefs = currentState<Preferences>()
-            val wishKey = prefs[WidgetKeys.WISH_KEY]
-            val wishText = prefs[WidgetKeys.WISH_INFO]
-            val wishSender = prefs[WidgetKeys.WISH_SENDER]
-            val wishImage = prefs[WidgetKeys.WISH_IMAGE]
-            val wishIsBlurred = prefs[WidgetKeys.WISH_IS_BLURRED] ?: false
-            val isLoading = prefs[WidgetKeys.IS_LOADING] ?: false
-            val errorMessage = prefs[WidgetKeys.ERROR_MESSAGE]
+            val wishKey = prefs[WidgetKeys.wishKeyFor(appWidgetIdStr)]
+            val wishText = prefs[WidgetKeys.wishInfoFor(appWidgetIdStr)]
+            val wishSender = prefs[WidgetKeys.wishSenderFor(appWidgetIdStr)]
+            val wishImage = prefs[WidgetKeys.wishImageFor(appWidgetIdStr)]
+            val wishIsBlurred = prefs[WidgetKeys.wishIsBlurredFor(appWidgetIdStr)] ?: false
+            val isLoading = prefs[WidgetKeys.isLoadingFor(appWidgetIdStr)] ?: false
+            val errorMessage = prefs[WidgetKeys.errorMessageFor(appWidgetIdStr)]
 
             Box(
                 modifier = GlanceModifier
@@ -88,13 +99,16 @@ class WidgetGlance : GlanceAppWidget() {
                     modifier = GlanceModifier.fillMaxSize().padding(4.dp)
                 ) {
                     Box(modifier = GlanceModifier.fillMaxWidth().defaultWeight().padding(4.dp)) {
-                        if (wishKey?.isBlank() == true) {
-                            EmptyKeyWidgetContent(context)
-                        } else if (isLoading) {
+                        if (isLoading) {
                             LoadingWidgetContent(context)
-                        } else if (errorMessage != null) {
+                        }
+                        else if (wishKey.isNullOrBlank()) {
+                            EmptyKeyWidgetContent(context)
+                        }
+                        else if (errorMessage != null) {
                             ErrorWidgetContent(context, errorMessage)
-                        } else if (wishImage != null && wishSender != null && wishText != null) {
+                        }
+                        else if (wishImage != null && wishSender != null && wishText != null) {
                             SuccessWidgetContent(
                                 wishSender,
                                 wishText,
@@ -150,7 +164,7 @@ fun SuccessWidgetContent(
             listOf(
                 BlurTransformation(
                     scale = 0.5f,
-                    radius = 25
+                    radius = 50
                 )
             )
         )
@@ -248,7 +262,7 @@ class RefreshWidgetCallback : ActionCallback {
 
 @AndroidEntryPoint
 class SimpleWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget = WidgetGlance()
+    override val glanceAppWidget: WidgetGlance = WidgetGlance()
 
     companion object {
         const val WORK_NAME = "WidgetUpdateWorker"
@@ -280,5 +294,25 @@ class SimpleWidgetReceiver : GlanceAppWidgetReceiver() {
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
         WorkManager.getInstance(context).cancelAllWorkByTag(WORK_NAME)
+    }
+
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        super.onDeleted(context, appWidgetIds)
+        Log.d("SimpleWidgetReceiver", "onDeleted called for appWidgetIds: ${appWidgetIds.joinToString()}")
+        val coroutineScope = CoroutineScope(Dispatchers.IO)
+        coroutineScope.launch {
+            for (appWidgetId in appWidgetIds) {
+                val appWidgetIdStr = appWidgetId.toString()
+                context.dataStore.edit { mutablePrefs ->
+                    mutablePrefs.remove(WidgetKeys.wishKeyFor(appWidgetIdStr))
+                    mutablePrefs.remove(WidgetKeys.wishInfoFor(appWidgetIdStr))
+                    mutablePrefs.remove(WidgetKeys.wishImageFor(appWidgetIdStr))
+                    mutablePrefs.remove(WidgetKeys.wishSenderFor(appWidgetIdStr))
+                    mutablePrefs.remove(WidgetKeys.wishIsBlurredFor(appWidgetIdStr))
+                    mutablePrefs.remove(WidgetKeys.isLoadingFor(appWidgetIdStr))
+                    mutablePrefs.remove(WidgetKeys.errorMessageFor(appWidgetIdStr))
+                }
+            }
+        }
     }
 }

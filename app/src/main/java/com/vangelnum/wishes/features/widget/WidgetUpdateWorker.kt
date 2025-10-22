@@ -3,130 +3,90 @@ package com.vangelnum.wishes.features.widget
 import android.content.Context
 import android.util.Log
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.vangelnum.wishes.App.Companion.dataStore
 import com.vangelnum.wishes.core.data.UiState
 import com.vangelnum.wishes.features.home.getwish.domain.repository.GetWishRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 @HiltWorker
 class WidgetUpdateWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
+    @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val getWishInfoRepository: GetWishRepository,
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        val context = applicationContext
-        val glanceIds = GlanceAppWidgetManager(context).getGlanceIds(WidgetGlance::class.java)
+        val glanceManager = GlanceAppWidgetManager(appContext)
+        val glanceIds = try {
+            glanceManager.getGlanceIds(WidgetGlance::class.java)
+        } catch (e: Exception) {
+            Log.e("WidgetUpdateWorker", "Failed to get glanceIds", e)
+            return Result.failure()
+        }
+
+        Log.d("WidgetUpdateWorker", "doWork: Found glanceIds: $glanceIds")
 
         if (glanceIds.isEmpty()) {
-            Log.d("WidgetUpdateWorker", "No Glance widgets found, finishing worker.")
-            return Result.failure()
-        }
-        Log.d("WidgetUpdateWorker", "Starting worker, updating widgets: $glanceIds")
-
-        val wishKey = runBlocking {
-            context.dataStore.data.first()[WidgetKeys.WISH_KEY] ?: ""
+            return Result.success()
         }
 
-        if (wishKey.isEmpty()) {
-            for (glanceId in glanceIds) {
-                updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
-                    prefs.toMutablePreferences().apply {
-                        this[WidgetKeys.IS_LOADING] = false
-                        this[WidgetKeys.ERROR_MESSAGE] = "Ключ виджета не установлен"
-                        remove(WidgetKeys.WISH_INFO)
-                        remove(WidgetKeys.WISH_IMAGE)
-                        remove(WidgetKeys.WISH_SENDER)
-                    }
-                }
-                WidgetGlance().update(context, glanceId)
+        glanceIds.forEach { glanceId ->
+            val currentAppWidgetId = try {
+                glanceManager.getAppWidgetId(glanceId)
+            } catch (e: IllegalStateException) {
+                // Может произойти, если виджет был удален во время работы worker'а
+                Log.w("WidgetUpdateWorker", "Could not find appWidgetId for glanceId $glanceId, widget might be deleted. Skipping.")
+                return@forEach
             }
-            return Result.failure()
-        }
 
-        for (glanceId in glanceIds) {
-            updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
-                prefs.toMutablePreferences().apply {
-                    this[WidgetKeys.IS_LOADING] = true
-                    remove(WidgetKeys.ERROR_MESSAGE)
-                    remove(WidgetKeys.WISH_INFO)
-                    remove(WidgetKeys.WISH_IMAGE)
-                    remove(WidgetKeys.WISH_SENDER)
-                    remove(WidgetKeys.WISH_IS_BLURRED)
-                }
+            Log.d("WidgetUpdateWorker", "Processing appWidgetId: $currentAppWidgetId")
+
+            val prefs = getAppWidgetState(appContext, PreferencesGlanceStateDefinition, glanceId)
+            val currentWishKey = prefs[WidgetKeys.wishKeyFor(currentAppWidgetId.toString())] // Используем appWidgetId для ключа
+
+            if (currentWishKey.isNullOrEmpty()) {
+                Log.w("WidgetUpdateWorker", "No wishKey for appWidgetId $currentAppWidgetId, skipping.")
+                return@forEach
             }
-            WidgetGlance().update(context, glanceId)
-        }
 
-        var result: Result = Result.failure()
-        getWishInfoRepository.getLastWishByKey(wishKey).collect { wishState ->
-            when (wishState) {
-                is UiState.Success -> {
-                    val wish = wishState.data
-                    for (glanceId in glanceIds) {
-                        updateAppWidgetState(
-                            context,
-                            PreferencesGlanceStateDefinition,
-                            glanceId
-                        ) { prefs ->
-                            prefs.toMutablePreferences().apply {
-                                this[WidgetKeys.WISH_KEY] = wishKey
-                                this[WidgetKeys.WISH_INFO] = wish.text
-                                this[WidgetKeys.WISH_SENDER] = wish.user.name
-                                this[WidgetKeys.WISH_IMAGE] = wish.image
-                                this[WidgetKeys.WISH_IS_BLURRED] = wish.isBlurred
-                                this[WidgetKeys.IS_LOADING] = false
-                                remove(WidgetKeys.ERROR_MESSAGE)
-                            }
-                        }
-                        WidgetGlance().update(context, glanceId)
+            Log.d("WidgetUpdateWorker", "Setting loading state for appWidgetId $currentAppWidgetId")
+            updateAppWidgetState(appContext, glanceId) { mutablePrefs ->
+                mutablePrefs[WidgetKeys.isLoadingFor(currentAppWidgetId.toString())] = true
+                mutablePrefs.remove(WidgetKeys.errorMessageFor(currentAppWidgetId.toString()))
+            }
+            WidgetGlance().update(appContext, glanceId)
+
+            val wishState = getWishInfoRepository.getLastWishByKey(currentWishKey)
+                .first { it !is UiState.Loading }
+
+            Log.d("WidgetUpdateWorker", "Setting final state for appWidgetId $currentAppWidgetId")
+            updateAppWidgetState(appContext, glanceId) { mutablePrefs ->
+                mutablePrefs[WidgetKeys.isLoadingFor(currentAppWidgetId.toString())] = false
+                when (wishState) {
+                    is UiState.Success -> {
+                        val wish = wishState.data
+                        mutablePrefs[WidgetKeys.wishKeyFor(currentAppWidgetId.toString())] = currentWishKey
+                        mutablePrefs[WidgetKeys.wishInfoFor(currentAppWidgetId.toString())] = wish.text
+                        mutablePrefs[WidgetKeys.wishSenderFor(currentAppWidgetId.toString())] = wish.user.name
+                        mutablePrefs[WidgetKeys.wishImageFor(currentAppWidgetId.toString())] = wish.image
+                        mutablePrefs[WidgetKeys.wishIsBlurredFor(currentAppWidgetId.toString())] = wish.isBlurred
+                        mutablePrefs.remove(WidgetKeys.errorMessageFor(currentAppWidgetId.toString()))
                     }
-                    Log.d("WidgetUpdateWorker", "Successfully updated widget with wish data")
-                    result = Result.success()
-                    return@collect
-                }
-
-                is UiState.Error -> {
-                    val errorMessage = wishState.message
-                    for (glanceId in glanceIds) {
-                        updateAppWidgetState(
-                            context,
-                            PreferencesGlanceStateDefinition,
-                            glanceId
-                        ) { prefs ->
-                            prefs.toMutablePreferences().apply {
-                                this[WidgetKeys.ERROR_MESSAGE] = errorMessage
-                                this[WidgetKeys.IS_LOADING] = false
-                                remove(WidgetKeys.WISH_INFO)
-                                remove(WidgetKeys.WISH_IMAGE)
-                                remove(WidgetKeys.WISH_SENDER)
-                                remove(WidgetKeys.WISH_IS_BLURRED)
-                            }
-                        }
-                        WidgetGlance().update(context, glanceId)
+                    is UiState.Error -> {
+                        mutablePrefs[WidgetKeys.errorMessageFor(currentAppWidgetId.toString())] = wishState.message
                     }
-                    Log.e("WidgetUpdateWorker", "Error fetching wish data: $errorMessage")
-                    result = Result.failure()
-                    return@collect
-                }
-
-                is UiState.Loading -> {}
-
-                is UiState.Idle -> {
-                    result = Result.failure()
-                    return@collect
+                    else -> { /* No-op */ }
                 }
             }
+            WidgetGlance().update(appContext, glanceId)
         }
-        return result
+        return Result.success()
     }
 }

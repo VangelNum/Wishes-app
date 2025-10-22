@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.Wishesapp" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Используйте тему из библиотеки AppCompat в качестве родительской -->
+    <style name="Theme.Wishesapp" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Атрибуты для кастомизации -->
+    </style>
 </resources>

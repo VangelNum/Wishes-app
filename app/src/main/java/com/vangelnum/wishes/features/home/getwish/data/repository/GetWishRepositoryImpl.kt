@@ -7,6 +7,7 @@ import com.vangelnum.wishes.features.home.getwish.data.model.Wish
 import com.vangelnum.wishes.features.home.getwish.data.model.WishDatesInfo
 import com.vangelnum.wishes.features.home.getwish.domain.repository.GetWishRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch // <-- Важный импорт
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
@@ -17,31 +18,25 @@ class GetWishRepositoryImpl @Inject constructor(
 
     override fun getDatesByKey(key: String): Flow<UiState<List<WishDatesInfo>>> = flow {
         emit(UiState.Loading())
-        try {
-            val response = api.getWishesDatesByKey(key)
-            emit(UiState.Success(response))
-        } catch (e: Exception) {
-            emit(UiState.Error(errorParser.parseError(e)))
-        }
+        val response = api.getWishesDatesByKey(key)
+        emit(UiState.Success(response))
+    }.catch { e ->
+        emit(UiState.Error(errorParser.parseError(e as Exception)))
     }
 
     override fun getWishes(key: String, id: Int): Flow<UiState<Wish>> = flow {
         emit(UiState.Loading())
-        try {
-            val response = api.getWishes(key, id)
-            emit(UiState.Success(response))
-        } catch (e: Exception) {
-            emit(UiState.Error(errorParser.parseError(e)))
-        }
+        val response = api.getWishes(key, id)
+        emit(UiState.Success(response))
+    }.catch { e ->
+        emit(UiState.Error(errorParser.parseError(e as Exception)))
     }
 
     override fun getLastWishByKey(key: String): Flow<UiState<Wish>> = flow {
         emit(UiState.Loading())
-        try {
-            val response = api.getLastWishByKey(key)
-            emit(UiState.Success(response))
-        } catch (e: Exception) {
-            emit(UiState.Error(errorParser.parseError(e)))
-        }
+        val response = api.getLastWishByKey(key)
+        emit(UiState.Success(response))
+    }.catch { e ->
+        emit(UiState.Error(errorParser.parseError(e as Exception)))
     }
 }

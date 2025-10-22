@@ -1,5 +1,6 @@
 package com.vangelnum.wishes.features.auth.core.utils
 
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -60,6 +61,8 @@ fun shareWish(key: String, wishText: String, wishImage: String, context: Context
             if (imageUri != null) {
                 putExtra(Intent.EXTRA_STREAM, imageUri)
                 type = getMimeType(imageUri) ?: "image/*"
+                val clipData = ClipData.newUri(context.contentResolver, "Image", imageUri)
+                setClipData(clipData)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             } else {
                 type = "text/plain"
@@ -67,6 +70,7 @@ fun shareWish(key: String, wishText: String, wishImage: String, context: Context
         }
 
         val chooserIntent = Intent.createChooser(shareIntent, null)
+        chooserIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
         withContext(Dispatchers.Main) {
             try {

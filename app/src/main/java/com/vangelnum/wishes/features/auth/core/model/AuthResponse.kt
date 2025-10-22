@@ -5,7 +5,7 @@ data class AuthResponse(
     val name: String,
     val password: String,
     val email: String,
-    val avatarUrl: String?,
+    val avatarUrl: String,
     val role: String,
     val coins: Int,
     val verificationCode: String,

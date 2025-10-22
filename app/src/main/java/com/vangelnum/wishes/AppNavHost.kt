@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.intl.Locale
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.vangelnum.wishes.core.data.UiState
+import com.vangelnum.wishes.core.presentation.ErrorScreen
 import com.vangelnum.wishes.features.auth.core.model.AuthResponse
 import com.vangelnum.wishes.features.auth.login.presentation.LoginEvent
 import com.vangelnum.wishes.features.auth.login.presentation.LoginScreen
@@ -36,6 +38,8 @@ import com.vangelnum.wishes.features.bonus.presentation.BonusEvent
 import com.vangelnum.wishes.features.bonus.presentation.BonusScreen
 import com.vangelnum.wishes.features.bonus.presentation.BonusViewModel
 import com.vangelnum.wishes.features.buns.presentation.BunsScreen
+import com.vangelnum.wishes.features.editprofile.presentation.EditProfileScreen
+import com.vangelnum.wishes.features.editprofile.presentation.EditProfileViewModel
 import com.vangelnum.wishes.features.home.HomeScreen
 import com.vangelnum.wishes.features.home.getwish.presentation.GetWishViewModel
 import com.vangelnum.wishes.features.home.sendwish.createwish.presentation.SendWishEvent
@@ -49,7 +53,6 @@ import com.vangelnum.wishes.features.home.sendwish.selectholiday.presentation.Ho
 import com.vangelnum.wishes.features.keylogshistory.presentation.KeyLogsHistoryScreen
 import com.vangelnum.wishes.features.keylogshistory.presentation.KeyLogsHistoryViewModel
 import com.vangelnum.wishes.features.profile.presentation.ProfileScreen
-import com.vangelnum.wishes.features.profile.presentation.UpdateProfileViewModel
 import com.vangelnum.wishes.features.userwishsendinghistory.presentation.UserWishesHistoryScreen
 import com.vangelnum.wishes.features.userwishsendinghistory.presentation.UserWishesHistoryViewModel
 import com.vangelnum.wishes.features.userwishviewhistory.presentation.ViewHistoryEvent
@@ -159,36 +162,56 @@ fun AppNavHost(
             popEnterTransition = { this.defaultComposableAnimation().popEnter },
             popExitTransition = { this.defaultComposableAnimation().popExit }
         ) {
-            val updateProfileViewModel = hiltViewModel<UpdateProfileViewModel>()
-            val updateProfileState = updateProfileViewModel.updateProfileState.collectAsStateWithLifecycle().value
-
-            val uploadImageState = updateProfileViewModel.uploadAvatarState.collectAsStateWithLifecycle().value
-
             if (loginState is UiState.Success) {
                 ProfileScreen(
                     userInfoState = loginViewModel.loginUiState.value,
-                    onUpdateProfile = { name, email, password, currentPassword, imageUri, context ->
-                        updateProfileViewModel.updateProfile(
-                            name,
-                            email,
-                            password,
-                            currentPassword,
-                            imageUri
-                        )
-                    },
-                    updateProfileState = updateProfileState,
-                    onUploadImage = { imageUri, context ->
-                        updateProfileViewModel.uploadAvatar(imageUri, context)
-                    },
-                    uploadImageState = uploadImageState,
-                    onUpdateUserInfo = { email, password ->
-                        loginViewModel.onEvent(LoginEvent.OnLoginUser(email, password))
-                    },
-                    backToEmptyState = {
-                        updateProfileViewModel.backToEmptyState()
+                    onNavigateEditProfilePage = {
+                        navController.navigate(EditProfilePage(
+                            avatar = loginState.data.avatarUrl,
+                            name = loginState.data.name,
+                            email = loginState.data.email
+                        ))
                     }
                 )
+            } else {
+                ErrorScreen(stringResource(R.string.unknown_error))
             }
+        }
+        composable<EditProfilePage>(
+            enterTransition = { this.defaultComposableAnimation().enter },
+            exitTransition = { this.defaultComposableAnimation().exit },
+            popEnterTransition = { this.defaultComposableAnimation().popEnter },
+            popExitTransition = { this.defaultComposableAnimation().popExit }
+        ) { backStack->
+            val args = backStack.toRoute<EditProfilePage>()
+            val editProfileViewModel = hiltViewModel<EditProfileViewModel>()
+            val editProfileState = editProfileViewModel.editProfileState.collectAsStateWithLifecycle().value
+            val uploadAvatarState = editProfileViewModel.uploadAvatarState.collectAsStateWithLifecycle().value
+            EditProfileScreen(
+                userAvatarUrl = args.avatar,
+                userName = args.name,
+                userEmail = args.email,
+                onEditUserInfo = { userName, userEmail, avatar, newPassword, currentPassword ->
+                    editProfileViewModel.editProfile(
+                        name = userName,
+                        email = userEmail,
+                        avatarUrl = avatar,
+                        newPassword = newPassword,
+                        currentPassword = currentPassword
+                    )
+                },
+                editProfileState = editProfileState,
+                onBackToEmptyState = {
+                    editProfileViewModel.backToEmptyState()
+                },
+                onNavigateToHome = {
+                    navController.navigate(HomePage())
+                },
+                onUploadAvatar = { imageUri, context ->
+                    editProfileViewModel.uploadAvatar(imageUri, context)
+                },
+                uploadAvatarState = uploadAvatarState
+            )
         }
         composable<HomePage>(
             enterTransition = { this.defaultComposableAnimation().enter },
@@ -202,12 +225,10 @@ fun AppNavHost(
 
             val wishesViewModel: GetWishViewModel = hiltViewModel()
             val wishState = wishesViewModel.wishesState.collectAsStateWithLifecycle().value
-            val wishesDatesState =
-                wishesViewModel.wishesDatesState.collectAsStateWithLifecycle().value
+            val wishesDatesState = wishesViewModel.wishesDatesState.collectAsStateWithLifecycle().value
 
             val worldTimeViewModel: WorldTimeViewModel = hiltViewModel()
-            val currentDateUiState =
-                worldTimeViewModel.currentDateUiState.collectAsStateWithLifecycle().value
+            val currentDateUiState = worldTimeViewModel.currentDateUiState.collectAsStateWithLifecycle().value
 
             HomeScreen(
                 keyUiState = keyUiState,
@@ -395,6 +416,8 @@ fun AppNavHost(
         ) {
             val userWishesHistoryViewModel = hiltViewModel<UserWishesHistoryViewModel>()
             val sendingHistoryWishes = userWishesHistoryViewModel.mySendingWishesState.collectAsStateWithLifecycle().value
+            val wishKeyViewModel: WishKeyViewModel = hiltViewModel()
+            val keyUiState = wishKeyViewModel.keyUiState.collectAsStateWithLifecycle().value
             UserWishesHistoryScreen(
                 sendingHistoryWishes,
                 onNavigateToViewHistoryScreen = { wishId ->
@@ -403,7 +426,8 @@ fun AppNavHost(
                 modifier = Modifier.fillMaxSize(),
                 onEvent = { event ->
                     userWishesHistoryViewModel.onEvent(event)
-                }
+                },
+                key = if (keyUiState is UiState.Success) keyUiState.data.key else "Error loading key"
             )
         }
         composable<ViewHistoryPage>(

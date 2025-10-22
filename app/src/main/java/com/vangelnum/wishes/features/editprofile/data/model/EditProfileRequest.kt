@@ -1,6 +1,6 @@
-package com.vangelnum.wishes.features.profile.data.model
+package com.vangelnum.wishes.features.editprofile.data.model
 
-data class UpdateProfileRequest(
+data class EditProfileRequest(
     val name: String? = null,
     val email: String? = null,
     val avatarUrl: String? = null,

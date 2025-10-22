@@ -6,4 +6,5 @@
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:previewImage="@layout/widget_preview_success"
+    android:configure="com.vangelnum.wishes.features.widget.WidgetConfigurationActivity"
     />

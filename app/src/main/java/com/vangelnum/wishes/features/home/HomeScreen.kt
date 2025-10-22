@@ -79,6 +79,7 @@ fun HomeScreen(
     val wishKeyUserInput = rememberSaveable {
         mutableStateOf(keyFromHistory ?: "")
     }
+
     var showRegenerateConfirmationDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(selectedHolidayDate) {

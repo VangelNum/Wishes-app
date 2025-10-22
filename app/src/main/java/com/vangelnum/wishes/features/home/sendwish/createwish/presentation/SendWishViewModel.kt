@@ -156,8 +156,7 @@ class SendWishViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val translateText = sendWishRepository.translateTextToEnglish(prompt)
-                val improvedPrompt =
-                    "Enhance the following image prompt to create a more vivid and engaging greeting card design: $translateText. Focus on visual details, ensuring the composition is suitable for a card. Include elements that evoke a sense of celebration and joy."
+                val improvedPrompt = "Enhance the following image prompt to create a more vivid and engaging greeting card design: $translateText. Focus on visual details, ensuring the composition is suitable for a card. Include elements that evoke a sense of celebration and joy."
                 val response = sendWishRepository.generateImage(improvedPrompt, model)
                 _sendWishUiState.update { it.copy(generateImageState = UiState.Success(response)) }
             } catch (e: Exception) {

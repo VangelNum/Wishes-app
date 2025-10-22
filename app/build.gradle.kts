@@ -84,4 +84,6 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.kotlinx.coroutines.play.services)
+
+    implementation(libs.androidx.appcompat)
 }

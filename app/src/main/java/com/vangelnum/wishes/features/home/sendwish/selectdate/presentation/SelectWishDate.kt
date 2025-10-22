@@ -31,8 +31,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -54,6 +58,11 @@ import java.time.Month
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+
+val ColorSaver = listSaver<Color, Float>(
+    save = { listOf(it.red, it.green, it.blue, it.alpha) },
+    restore = { Color(it[0], it[1], it[2], it[3]) }
+)
 
 @Composable
 fun ColumnScope.SelectWishDate(
@@ -171,7 +180,11 @@ fun ColumnScope.SelectWishDate(
 
                 items(daysList) { day ->
                     val dayOfMonth = currentDayOfMonth + day
-                    val randomColor = remember(dayOfMonth) { generateLightColor() }
+
+                    var randomColor by rememberSaveable(dayOfMonth, stateSaver = ColorSaver) {
+                        mutableStateOf(generateLightColor())
+                    }
+
                     Card(
                         modifier = Modifier
                             .fillMaxSize()
